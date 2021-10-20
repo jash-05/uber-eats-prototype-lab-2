@@ -5,16 +5,16 @@ module.exports = app => {
     app.post("/customers", customers.create);
   
     // // Retrieve all Customers
-    // app.get("/customers", customers.findAll);
+    app.get("/customers", customers.findAll);
 
-    // // Authenticate a single user's email_ID and password
-    // app.post("/customer", customers.authenticate);
+    // Authenticate a single user's email_ID and password
+    app.post("/customer", customers.authenticate);
   
-    // // Retrieve a single Customer with customerId
-    // app.get("/customers/:customerId", customers.findOne);
+    // Retrieve a single Customer with customerId
+    app.get("/customers/:customerId", customers.findOne);
   
-    // // Update a Customer with customerId
-    // app.put("/customers/:customerId", customers.update);
+    // Update a Customer with customerId
+    app.put("/customers/:customerId", customers.update);
   
     // // Delete a Customer with customerId
     // app.delete("/customers/:customerId", customers.delete);
