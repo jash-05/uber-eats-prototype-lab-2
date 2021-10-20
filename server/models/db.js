@@ -1,19 +1,12 @@
-const mysql = require('mysql');
-const dbConfig = require('../config/config.js');
+const dbConfig = require("../config/config.js");
 
-// Create connection to database
-const conn = mysql.createConnection({
-    host: dbConfig.HOST,
-    port: dbConfig.PORT,
-    user: dbConfig.USER,
-    password: dbConfig.PASSWORD,
-    database: dbConfig.DB    
-});
+const mongoose = require("mongoose");
+mongoose.Promise = global.Promise;
 
-// Connect to database
-conn.connect(error => {
-    if (error) throw error;
-    console.log("Successfully connected to the database");
-});
+const db = {};
+db.mongoose = mongoose;
+db.url = dbConfig.url;
+db.tutorials = require("./tutorial.model.js")(mongoose);
+db.customers = require("./customer.model.js")(mongoose);
 
-module.exports = conn;
+module.exports = db;

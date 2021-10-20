@@ -1,0 +1,45 @@
+{
+    "customer_ID": "1",
+    "first_name": "John",
+    "last_name": "Doe",
+    "email_id": "john.doe@gmail.com",
+    "pass": "john@123",
+    "country": "Mexico",
+    "phone_number": "55114459191",
+    "about": "Hey, I'm just an average Joe lol",
+    "profile_picture": "https://s3.uber-eats-clone/john-doe.jpeg",
+    "dob": "01/01/2001",
+    "city": "San Jose",
+    "nickname": "Average Joe",
+    "favourites": [
+        {
+            "restaurant_ID": "2"
+        },
+        {
+            "restaurant_ID": "3"
+        },
+        {
+            "restaurant_ID": "5"
+        }
+    ],
+    "addresses": [
+        {
+            "address_ID": "1",
+            "address_title": "primary",
+            "line1": "One Washington Square",
+            "line2": "",
+            "city": "San Jose",
+            "state_name": "Caifornia",
+            "zipcode": 95192
+        },
+        {
+            "address_ID": "2",
+            "address_title": "emily",
+            "line1": "43 S Third",
+            "line2": "3463",
+            "city": "San Jose",
+            "state_name": "Caifornia",
+            "zipcode": 95190
+        }
+    ]
+  }

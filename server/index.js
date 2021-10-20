@@ -52,6 +52,19 @@ app.use(function(req, res, next) {
     next();
   });
 
+const db = require("./models/db.js");
+db.mongoose
+.connect(db.url, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+})
+.then(() => {
+    console.log("Connected to the database!");
+})
+.catch(err => {
+    console.log("Cannot connect to the database!", err);
+    process.exit();
+});
 
 app.get('/', (req, res) => {
     res.json({
@@ -96,13 +109,14 @@ app.post('/register', (req, res) => {
     res.send('registered successfully');
 })
 
-require("./routes/customer.routes.js")(app);
-require("./routes/restaurant.routes.js")(app);
-require("./routes/favourite.routes.js")(app);
-require("./routes/customer_address.routes.js")(app);
-require("./routes/restaurant_address.routes.js")(app);
-require("./routes/dish.routes.js")(app);
-require("./routes/order.routes.js")(app);
+require("./routes/tutorial.routes")(app);
+require("./routes/customer.routes")(app);
+// require("./routes/restaurant.routes.js")(app);
+// require("./routes/favourite.routes.js")(app);
+// require("./routes/customer_address.routes.js")(app);
+// require("./routes/restaurant_address.routes.js")(app);
+// require("./routes/dish.routes.js")(app);
+// require("./routes/order.routes.js")(app);
 
 app.listen(3001, () => {
     console.log('Server is running on port 3001');
