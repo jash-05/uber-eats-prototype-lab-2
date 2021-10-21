@@ -112,7 +112,7 @@ app.post('/register', (req, res) => {
 require("./routes/tutorial.routes")(app);
 require("./routes/customer.routes")(app);
 // require("./routes/restaurant.routes.js")(app);
-// require("./routes/favourite.routes.js")(app);
+require("./routes/favourite.routes.js")(app);
 // require("./routes/customer_address.routes.js")(app);
 // require("./routes/restaurant_address.routes.js")(app);
 // require("./routes/dish.routes.js")(app);
