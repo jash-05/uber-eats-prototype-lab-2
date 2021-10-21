@@ -1,4 +1,4 @@
-{
+[{
     "customer_ID": "1",
     "first_name": "John",
     "last_name": "Doe",
@@ -42,4 +42,13 @@
             "zipcode": 95190
         }
     ]
-  }
+  },
+  {
+    "customer_ID": "1",
+    "address_line_1": "134 Julian St",
+    "city": "San Jose",
+    "state": "California",
+    "zip": "95112",
+    "address_type": "julie"
+}
+]
