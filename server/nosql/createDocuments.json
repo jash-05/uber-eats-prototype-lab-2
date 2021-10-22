@@ -93,5 +93,32 @@
             "dish_image": "https://s3.uber-eats-prototype/cheese-and-rice-burrito.jpeg"
         }
     ]
+},
+{
+    "customer_ID": "2",
+    "restaurant_ID": "1",
+    "order_type": "delivery",
+    "total_amount": 40.49,
+    "order_items": [
+        {
+            "dish_ID": 1,
+            "dish_name": "dishname1",
+            "price": 3.5,
+            "quantity": 4
+        },
+        {
+            "dish_ID": 2,
+            "dish_name": "dishname2",
+            "price": 6,
+            "quantity": 2
+        },
+        {
+            "dish_ID": 3,
+            "dish_name": "dishname3",
+            "price": 11.49,
+            "quantity": 1
+        }
+    ],
+    "address_ID": "3"
 }
 ]

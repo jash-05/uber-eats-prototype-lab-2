@@ -9,5 +9,6 @@ db.url = dbConfig.url;
 db.tutorials = require("./tutorial.model.js")(mongoose);
 db.customers = require("./customer.model.js")(mongoose);
 db.restaurants = require("./restaurant.model.js")(mongoose);
+db.orders = require("./order.model.js")(mongoose);
 
 module.exports = db;
