@@ -50,5 +50,48 @@
     "state": "California",
     "zip": "95112",
     "address_type": "julie"
+},
+{
+    "restaurant_ID": "1",
+    "restaurant_name": "Taco Bell",
+    "owner_name": "Mr. Taco",
+    "email_id": "admin@tacobell.com",
+    "pass": "taco@123",
+    "country": "USA",
+    "phone_number": "4085216691",
+    "vegetarian": true,
+    "non_vegetarian": true,
+    "vegan": false,
+    "delivery": true,
+    "pickup": false,
+    "cover_image": "https://s3.uber-eats-prototype/taco-bell.jpeg",
+    "about": "Taco bell is one of the most iconic mexican fast food chains in the US",
+    "opening_time": "11:30AM",
+    "closing_time": "10:00PM",
+    "address": {
+        "line1": "33 South 3rd",
+        "line2": "1205",
+        "city": "San Jose",
+        "state_name": "California",
+        "zipcode": "95050"
+    },
+    "dishes": [
+        {
+            "dish_name": "Regular Taco",
+            "category_ID": "2",
+            "main_ingredients": "taco shell, taco filling",
+            "price": 1.45,
+            "about": "Very affordable snack",
+            "dish_image": "https://s3.uber-eats-prototype/regular-taco.jpeg"
+        },
+        {
+            "dish_name": "Cheese and rice burrito",
+            "category_ID": "3",
+            "main_ingredients": "black beans, cheese, rice, tortilla wrap",
+            "price": 3.90,
+            "about": "Quick lunch meal",
+            "dish_image": "https://s3.uber-eats-prototype/cheese-and-rice-burrito.jpeg"
+        }
+    ]
 }
 ]

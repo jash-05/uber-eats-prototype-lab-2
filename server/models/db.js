@@ -8,5 +8,6 @@ db.mongoose = mongoose;
 db.url = dbConfig.url;
 db.tutorials = require("./tutorial.model.js")(mongoose);
 db.customers = require("./customer.model.js")(mongoose);
+db.restaurants = require("./restaurant.model.js")(mongoose);
 
 module.exports = db;
