@@ -20,9 +20,10 @@ exports.placeOrder = async (req, res) => {
       res.status(400).send({ message: "Content can not be empty!" });
       return;
     }
+    console.log(req.body)
     const customerDetails = await Customer.findOne({customer_ID: req.body.customer_ID})
     const restaurantDetails = await Restaurant.findOne({restaurant_ID: req.body.restaurant_ID})
-
+    console.log(customerDetails)
     const orderDetails = {
         order_ID: uuidv4(),
         order_status: 'placed',
@@ -82,7 +83,16 @@ exports.updateStatus = (req, res) => {
   };
 
 exports.fetchOrdersForRestaurant = (req, res) => {
-    Order.find({"restaurant_info.restaurant_ID": req.query.restaurant_ID}, 'order_ID')
+    console.log(req.query)
+    let condition = {
+      "restaurant_info.restaurant_ID": req.query.restaurant_ID
+    }
+    if (req.query.filter !== "all") {
+      condition['order_status'] = req.query.filter
+    }
+    Order.find(condition)
+      .skip(parseInt(req.query.toSkip))
+      .limit(parseInt(req.query.limit))
       .then(data => {
         res.send(data);
       })
@@ -94,8 +104,30 @@ exports.fetchOrdersForRestaurant = (req, res) => {
       });
   };
 
+exports.fetchPageNumbersForRestaurantOrders = async (req, res) => {
+  console.log(req.query)
+  let condition = {
+    "restaurant_info.restaurant_ID": req.query.restaurant_ID
+  }
+  if (req.query.filter !== "all") {
+    condition['order_status'] = req.query.filter
+  }
+  Order.find(condition)
+    .then(data => {
+      res.send({
+        'numberOfPages': Math.ceil(data.length / req.query.limit)
+      })
+    })
+    .catch(err => {
+      res.status(500).send({
+        message:
+          err.message || "Some error occurred while retrieving customer."
+      });
+    });
+};
+
 exports.fetchOrdersForCustomer = (req, res) => {
-    Order.find({"customer_info.customer_ID": req.query.customer_ID}, 'order_ID')
+    Order.find({"customer_info.customer_ID": req.query.customer_ID})
       .then(data => {
         res.send(data);
       })

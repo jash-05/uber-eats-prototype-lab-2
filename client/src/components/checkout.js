@@ -14,7 +14,7 @@ import FloatingLabel from 'react-bootstrap/esm/FloatingLabel';
 import server_IP from '../config/server.config.js';
 import {withRouter} from 'react-router-dom';
 import { connect } from 'react-redux'
-import { update_quantity, delete_item, clear_cart} from '../redux'
+import { update_quantity, delete_item, clear_cart} from '../redux';
 
 // Define a Login Component
 class CheckoutOrder extends Component{
@@ -155,12 +155,18 @@ class CheckoutOrder extends Component{
     }
     placeOrder = async () => {
         try {
+            console.log('About to place order')
+            console.log(this.state)
+            console.log(this.props)
             let data = {
-                'order_ID': this.state.order_info.order_ID,
-                'address_ID': this.state.selected_address_ID,
-                'total_amount': this.state.order_info.total_amount,
-                'order_type': sessionStorage.getItem("order_type")
+                customer_ID: this.state.customer_ID,
+                restaurant_ID: this.props.restaurant_ID,
+                order_type: sessionStorage.getItem("order_type"),
+                total_amount: this.props.total_amount,
+                order_items: this.props.dishes,
+                address_ID: this.state.selected_address_ID
             }
+            console.log(data)
             const response = await axios.post(`http://${server_IP}:3001/placeOrder`, data);
             console.log("Status Code: ", response.status);
             if (response.status === 200){

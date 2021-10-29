@@ -12,6 +12,8 @@ module.exports = app => {
     app.get("/fetchOrdersForCustomer", orders.fetchOrdersForCustomer);
 
     app.get("/fetchOrdersForRestaurant", orders.fetchOrdersForRestaurant);
+
+    app.get("/fetchPageNumbersForRestaurantOrders", orders.fetchPageNumbersForRestaurantOrders);
     
     app.post('/placeOrder', orders.placeOrder);
 

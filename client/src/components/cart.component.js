@@ -1,6 +1,5 @@
 import React, {Component} from 'react'
 import { connect } from 'react-redux'
-import { buyCake } from '../redux'
 import { update_quantity, delete_item, clear_cart} from '../redux'
 
 class CartComponent extends Component {
@@ -66,8 +65,7 @@ const mapDispatchToProps = (dispatch) => {
     return {
         call_update_quantity: (x) => dispatch(update_quantity(x)),
         call_delete_item: (x) => dispatch(delete_item(x)),
-        call_clear_cart: (x) => dispatch(clear_cart(x)),
-        call_buyCake: (x) => dispatch(buyCake(x))
+        call_clear_cart: (x) => dispatch(clear_cart(x))
     }
 }
 

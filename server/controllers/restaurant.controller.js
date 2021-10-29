@@ -112,14 +112,22 @@ exports.findSearchedItems = (req, res) => {
   };
   
 exports.authenticate = (req, res) => {
-    Restaurant.find({
+    Restaurant.findOne({
       "email_id": req.body.email_id,
       "pass": req.body.pass
     })
       .then(data => {
-        if (!data.length)
+        if (!data)
           res.status(404).send({ message: "Not found customer with email " + req.body.email_id });
-        else res.send(data);
+        else {
+          console.log(data)
+          req.session.user = {
+              user_type: "restaurant",
+              id: data.restaurant_ID
+          }
+          res.cookie('restaurant',data.restaurant_ID,{maxAge: 9000000, httpOnly: false, path : '/'});
+          res.send(data)
+        }
       })
       .catch(err => {
         res
