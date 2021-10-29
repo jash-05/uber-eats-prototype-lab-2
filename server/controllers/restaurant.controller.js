@@ -129,7 +129,7 @@ exports.authenticate = (req, res) => {
   };
 
 exports.findOne = (req, res) => {
-    Restaurant.find({restaurant_ID: req.params.restaurantId})
+    Restaurant.findOne({restaurant_ID: req.params.restaurantId})
       .then(data => {
         if (!data)
           res.status(404).send({ message: "Not found Tutorial with id " + req.params.restaurantId });

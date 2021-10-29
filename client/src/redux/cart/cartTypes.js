@@ -1,0 +1,4 @@
+export const UPDATE_QUANTITY = 'UPDATE_QUANTITY';
+export const DELETE_ITEM = 'DELETE_ITEM';
+export const CLEAR_CART = 'CLEAR_CART';
+export const UPDATE_TOTAL_AMOUNT = 'UPDATE_TOTAL_AMOUNT';

@@ -12,6 +12,11 @@ exports.create = (req, res) => {
   customer
     .save(customer)
     .then(data => {
+      req.session.user = {
+          user_type: "customer",
+          id: data.customer_ID
+      }
+      res.cookie('customer',data.customer_ID,{maxAge: 9000000, httpOnly: false, path : '/'});
       res.send(data);
     })
     .catch(err => {
@@ -36,14 +41,22 @@ exports.findAll = (req, res) => {
 };
 
 exports.authenticate = (req, res) => {
-  Customer.find({
+  Customer.findOne({
     "email_id": req.body.email_id,
     "pass": req.body.pass
   })
     .then(data => {
+      console.log(data)
       if (!data)
         res.status(404).send({ message: "Not found customer with email " + req.body.email_id });
-      else res.send(data);
+      else {
+        req.session.user = {
+            user_type: "customer",
+            id: data.customer_ID
+        }
+        res.cookie('customer',data.customer_ID,{maxAge: 9000000, httpOnly: false, path : '/'});
+        res.send(data);
+      }
     })
     .catch(err => {
       res

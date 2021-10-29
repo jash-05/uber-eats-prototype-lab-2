@@ -13,6 +13,8 @@ import { Link, Redirect } from 'react-router-dom';
 import Navbar from './navbar';
 import server_IP from '../config/server.config.js';
 import {withRouter} from 'react-router-dom';
+import { connect } from 'react-redux'
+import { update_quantity, delete_item, clear_cart, update_total_amount} from '../redux'
 
 // Define a Login Component
 class RestaurantDetails extends Component{
@@ -30,8 +32,6 @@ class RestaurantDetails extends Component{
             about: "",
             full_adress: "",
             fetchedDishes: [],
-            selectedDishes: [],
-            order_info: {},
             showModal: false,
             showConfirmationModal: false,
             new_dish: {},
@@ -41,19 +41,17 @@ class RestaurantDetails extends Component{
         this.updateQuantityHandler = this.updateQuantityHandler.bind(this);
         this.fetchRestaurantDetails = this.fetchRestaurantDetails.bind(this);
         this.fetchDishes = this.fetchDishes.bind(this);
-        this.fetchCurrentOrder = this.fetchCurrentOrder.bind(this);
         this.viewOrder = this.viewOrder.bind(this);
         this.closeModal = this.closeModal.bind(this);
         this.checkoutOrder = this.checkoutOrder.bind(this);
     }
     //Call the Will Mount to set the auth Flag to false
     componentDidMount(){
-        if (!cookie.load('customer')){
-            this.props.history.push(`/welcomeUser`)
-        }
+        // if (!cookie.load('customer')){
+        //     this.props.history.push(`/welcomeUser`)
+        // }
         this.fetchRestaurantDetails();
         this.fetchDishes();
-        this.fetchCurrentOrder();
         this.checkIfFavourite();
     }
     checkIfFavourite = async () => {
@@ -98,59 +96,32 @@ class RestaurantDetails extends Component{
     }
     updateQuantityHandler = async (e) => {
         console.log("Update quantity handler")
-        let to_add = 0
+        let dish_ID = e.target.parentNode.parentNode.childNodes[1].childNodes[0].childNodes[0].data
+        let dish_name = e.target.parentNode.parentNode.parentNode.previousSibling.childNodes[0].innerText
+        let price = parseFloat(e.target.parentNode.parentNode.parentNode.previousSibling.childNodes[2].innerText.slice(1))
+        let change_in_quantity = 0
         if (e.target.innerText === "+"){
-            to_add = 1
+            change_in_quantity = 1
         } else {
-            to_add = -1
+            change_in_quantity = -1
         }
-        let quantity = parseInt(e.target.parentNode.parentNode.childNodes[1].lastChild.data)
-        let dish_ID = parseInt(e.target.parentNode.parentNode.childNodes[1].childNodes[0].childNodes[0].data)
-
-        if (this.state.order_info.order_ID) {
-            if (this.state.order_info.restaurant_ID === parseInt(this.state.restaurant_ID)) {
-                console.log('Add dish to existing order')
-                let data = {
-                    order_ID: this.state.order_info.order_ID,
-                    dish_ID: dish_ID,
-                    quantity: Math.max(quantity + to_add, 0),
-                    restaurant_ID: this.state.restaurant_ID,
-                    customer_ID: this.state.customer_ID
-                };
-                await this.addItemToOrder(data);
-            } else {
-                this.setState({
-                    new_dish: {
-                        dish_ID,
-                        quantity: Math.max(quantity + to_add, 0)
-                    },
-                    showConfirmationModal: true
-                })
-            }
+        const payload = {
+            restaurant_ID: this.state.restaurant_ID,
+            dish_ID: dish_ID,
+            dish_name: dish_name,
+            price: price,
+            change_in_quantity: change_in_quantity            
+        }
+        if (!this.props.restaurant_ID || this.state.restaurant_ID === this.props.restaurant_ID) {
+            this.props.call_update_quantity(payload)
+            this.setState({
+                showConfirmationModal: false
+            })
         } else {
-            console.log('create new order and add dish')
-            let data = {
-                dish_ID: dish_ID,
-                quantity: Math.max(quantity + to_add, 0),
-                restaurant_ID: this.state.restaurant_ID,
-                customer_ID: this.state.customer_ID
-            };
-            await this.addItemToOrder(data);
-        }
-        await this.fetchCurrentOrder();
-    }
-    addItemToOrder = async (data) => {
-        try {
-            const response  = await axios.post(`http://${server_IP}:3001/addOrderItem`, data);
-            console.log("Status Code: ", response.status);
-            if (response.status === 200){
-                console.log("Successful request");
-            } else {
-                console.log("Unsuccessful request");
-                console.log(response);
-            }   
-        } catch (err) {
-            console.error(err)
+            this.setState({
+                new_dish: payload,
+                showConfirmationModal: true
+            })
         }
     }
     fetchRestaurantDetails = async () => {
@@ -162,14 +133,16 @@ class RestaurantDetails extends Component{
                 console.log(response.data);
                 this.setState({restaurant_name: response.data.restaurant_name});
                 this.setState({
-                    short_address: `${response.data.line1} ${response.data.line2}`
+                    short_address: `${response.data.address.line1} ${response.data.address.line2}`
                 });
                 this.setState({
-                    full_address: `${response.data.line1} ${response.data.line2}, ${response.data.city}, ${response.data.state_name} ${response.data.zipcode}`
+                    full_address: `${response.data.address.line1} ${response.data.address.line2}, ${response.data.address.city}, ${response.data.address.state_name} ${response.data.address.zipcode}`
                 })
                 this.setState({cover_image: response.data.cover_image});
                 this.setState({about: response.data.about});
                 console.log('Cookie status: ', cookie.load('cookie'));
+                console.log('Completed fetch restaurant details functions')
+                console.log(this.state)
             } else{
                 console.log("Unsuccessful request");
                 console.log(response);
@@ -184,21 +157,21 @@ class RestaurantDetails extends Component{
             const response = await axios.get(`http://${server_IP}:3001/dish`, {params:{restaurant_ID: this.state.restaurant_ID}})
             console.log("Status Code : ",response.status);
             if(response.status === 200){
-                console.log("Successful request");
+                console.log("Successful request for fetching dishes");
                 console.log(response.data);
-                for (let i=0;i < response.data.length; i++){
-                    let main_ingredients = response.data[i].main_ingredients;
+                for (let i=0;i < response.data.dishes.length; i++){
+                    let main_ingredients = response.data.dishes[i].main_ingredients;
                     if ((main_ingredients) && (main_ingredients.length > 20)) {
                         main_ingredients = main_ingredients.slice(0,80).concat('...')
                     }
                     dishesData.push({
-                        'dish_ID': response.data[i].dish_ID,
-                        'dish_name': response.data[i].dish_name,
-                        'category_ID': response.data[i].category_ID,
+                        'dish_ID': response.data.dishes[i].dish_ID,
+                        'dish_name': response.data.dishes[i].dish_name,
+                        'category_ID': response.data.dishes[i].category_ID,
                         'main_ingredients': main_ingredients,
-                        'price': response.data[i].price,
-                        'about': response.data[i].about,
-                        "dish_image": response.data[i].dish_image,
+                        'price': response.data.dishes[i].price,
+                        'about': response.data.dishes[i].about,
+                        "dish_image": response.data.dishes[i].dish_image,
                         "quantity": 0
                     });
                 }
@@ -214,91 +187,15 @@ class RestaurantDetails extends Component{
             console.error(err);
         }
     }
-    fetchCurrentOrder = async () => {
-        try {
-            console.log("Fetching current order")
-            const response = await axios.get(`http://${server_IP}:3001/getOrderDetails`, {
-                params: {
-                    restaurant_ID: this.state.restaurant_ID,
-                    customer_ID: this.state.customer_ID
-                }
-            })
-            console.log("Status Code: ", response.status);
-            if (response.status === 200){
-                console.log("Successful request");
-                console.log(response.data);
-                if (response.data.order_ID) {
-                    if (response.data.restaurant_ID === parseInt(this.state.restaurant_ID)){
-                        const res = await axios.get(`http://${server_IP}:3001/getOrderItems`, {
-                            params: {
-                                order_ID: response.data.order_ID
-                            }
-                        })
-                        console.log("Status Code: ", res.status);
-                        if (res.status === 200){
-                            let prev_state = this.state.fetchedDishes
-                            if (res.data.dishes){
-                                let new_state = []
-                                for (let i=0; i<prev_state.length;i++){
-                                    let matchedDish = res.data.dishes.filter(x => x.dish_ID === prev_state[i].dish_ID)
-                                    if(matchedDish.length>0){
-                                        prev_state[i].quantity = matchedDish[0].quantity
-                                    }
-                                    new_state.push(prev_state[i])
-                                }
-                                let order_info = response.data
-                                delete order_info["dishes"]
-                                this.setState({
-                                    order_info: order_info,
-                                    fetchedDishes: new_state
-                                });
-                            } else {
-                                this.setState({
-                                    order_info: response.data
-                                })
-                            }
-                        } else {
-                            console.log("Unsuccessful request");
-                            console.log(response);
-                        }
-                    } else {
-                        this.setState({
-                            order_info: response.data
-                        })
-                    }
-                }
-            } else {
-                console.log("Unsuccessful request");
-                console.log(response);
-            }
-        } catch (err) {
-            console.error(err);
-        }
-    }
     viewOrder = () => {
         console.log("Inside view order function")
-        console.log(this.state.fetchedDishes)
-        // console.log(this.state.fetchedDishes[0])
-        let selected_dishes = []
-        let total_order_amount = 0.0
-        for (let i=0; i<this.state.fetchedDishes.length; i++) {
-            if (this.state.fetchedDishes[i].quantity > 0) {
-                selected_dishes.push(
-                    this.state.fetchedDishes[i]
-                )
-                total_order_amount += (this.state.fetchedDishes[i].quantity 
-                    * this.state.fetchedDishes[i].price)
-            }
-        }
-        console.log(selected_dishes);
-        console.log(`${total_order_amount}`);
-        console.log(this.state.order_info);
-        let new_order_info = this.state.order_info
-        new_order_info.total_amount = Math.round(total_order_amount*100)/100
+        let total_order_amount = this.props.dishes.reduce((prev, next) => prev + next.quantity * next.price, 0);
+        total_order_amount = Math.round(total_order_amount*100)/100
+        this.props.call_update_total_amount({
+            total_amount: total_order_amount
+        })
         this.setState({
-            showModal: !this.state.showModal,
-            order_info: new_order_info,
-            selectedDishes: selected_dishes
+            showModal: !this.state.showModal
         })
     }
     closeModal = () => {
@@ -319,29 +216,16 @@ class RestaurantDetails extends Component{
     }
     createNewOrder = async () => {
         console.log("Inside checkout order function")
-        try {
-            await axios.delete(`http://${server_IP}:3001/deleteInCartOrder/${this.state.customer_ID}`)
-            let data = {
-                dish_ID: this.state.new_dish.dish_ID,
-                quantity: this.state.new_dish.quantity,
-                restaurant_ID: this.state.restaurant_ID,
-                customer_ID: this.state.customer_ID
-            }
-            await this.addItemToOrder(data);
-            this.setState({
-                showConfirmationModal: !this.state.showConfirmationModal
-            })
-            await this.fetchCurrentOrder();
-        } catch (err) {
-            console.error(err);
-        }
-
+        this.props.call_clear_cart();
+        this.props.call_update_quantity(this.state.new_dish);
+        this.setState({
+            showConfirmationModal: !this.state.showConfirmationModal
+        })
     }
     render(){
         console.log("Rendering");
-        console.log(this.state.order_info)
-        console.log(this.state.fetchedDishes)
-        console.log(this.state.isFavourite)
+        console.log(this.props)
+        console.log(this.state)
         let redirectVar = null;
         if (!cookie.load('customer')){
             redirectVar = <Redirect to="/welcomeUser"/>
@@ -372,7 +256,12 @@ class RestaurantDetails extends Component{
                                 </Col>
                                 <Col className="h6 my-auto">
                                     <Form.Label visuallyHidden>{card.dish_ID}</Form.Label>
-                                    {card.quantity}
+                                    {/* {card.quantity} */}
+                                    {console.log('e')}
+                                    {console.log(this.props.dishes.filter(dish => dish.dish_ID === card.dish_ID).length)}
+                                    {console.log(this.props.dishes)}
+                                    {/* {console.log(this.props.dishes.find(dish => dish.dish_ID === card.dish_ID).quantity)} */}
+                                    {(this.props.dishes.filter(dish => dish.dish_ID === card.dish_ID).length ? this.props.dishes.find(dish => dish.dish_ID === card.dish_ID).quantity : 0)}
                                 </Col>
                                 <Col>
                                     <Button onClick={this.updateQuantityHandler} size="md" variant="dark">+</Button>
@@ -447,17 +336,17 @@ class RestaurantDetails extends Component{
                         <Modal.Title>Current Order</Modal.Title>
                         </Modal.Header>
                         <Modal.Body>
-                            {this.state.selectedDishes.map(createOrderItemRow)}
+                            {this.props.dishes.map(createOrderItemRow)}
                             <Row className="mt-4">
                                 <Col xs={1}></Col>
                                 <Col xs={9}>Total amount:</Col>
-                                <Col xs={2}> {`$${this.state.order_info.total_amount}`} </Col>
+                                <Col xs={2}> {`$${this.props.total_amount}`} </Col>
                             </Row>
                         </Modal.Body>
                         <Modal.Footer>
                             <Link to={`/checkout/${this.state.restaurant_ID}`}>
                                 <Button className="mx-auto" variant="dark" onClick={this.checkoutOrder}>
-                                    Go to checkout • {`$${this.state.order_info.total_amount}`}
+                                    Go to checkout • {`$${this.props.total_amount}`}
                                 </Button>
                             </Link>
                         </Modal.Footer>
@@ -474,7 +363,24 @@ class RestaurantDetails extends Component{
     }
 }
 
+const mapStateToProps = state => {
+    return {
+      restaurant_ID: state.cart.restaurant_ID,
+      dishes: state.cart.dishes,
+      total_amount: state.cart.total_amount
+    }
+}
+  
+const mapDispatchToProps = (dispatch) => {
+    return {
+        call_update_quantity: (x) => dispatch(update_quantity(x)),
+        call_delete_item: (x) => dispatch(delete_item(x)),
+        call_clear_cart: (x) => dispatch(clear_cart(x)),
+        call_update_total_amount: (x) => dispatch(update_total_amount(x))
+    }
+}
 
-
-//export Login Component
-export default withRouter(RestaurantDetails);
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(RestaurantDetails);

@@ -13,6 +13,8 @@ import { Link } from 'react-router-dom';
 import FloatingLabel from 'react-bootstrap/esm/FloatingLabel';
 import server_IP from '../config/server.config.js';
 import {withRouter} from 'react-router-dom';
+import { connect } from 'react-redux'
+import { update_quantity, delete_item, clear_cart} from '../redux'
 
 // Define a Login Component
 class CheckoutOrder extends Component{
@@ -93,16 +95,16 @@ class CheckoutOrder extends Component{
             console.log("Fetched customer addresses")
             console.log("Status Code: ", response.status)
             if (response.status === 200) {
-                console.log("Successful request")
-                console.log(response.data)
+                console.log("Successful request for fetching customer addresses")
+                console.log(response.data.addresses)
                 let selected_address_ID = 1
-                for (let i=0;i<response.data.length;i++){
-                    if(response.data[i].address_type==="primary"){
-                        selected_address_ID = response.data[i].address_ID
+                for (let i=0;i<response.data.addresses.length;i++){
+                    if(response.data.addresses[i].address_type==="primary"){
+                        selected_address_ID = response.data.addresses[i].address_ID
                     }
-                }   
+                }
                 this.setState({
-                    customer_addresses: response.data,
+                    customer_addresses: response.data.addresses,
                     selected_address_ID: selected_address_ID
                 })
             } else {
@@ -175,7 +177,7 @@ class CheckoutOrder extends Component{
     }
     render(){
         console.log("Rendering")
-        console.log(this.state.order_info)
+        console.log(this.props)
         const createOrderItemRow = row => {
             return (
                 <Row className="my-1">
@@ -267,11 +269,12 @@ class CheckoutOrder extends Component{
                             <Row className="h3 mt-5 mb-3">
                                 <p>Order Details</p>
                             </Row>
-                            {this.state.selectedDishes.map(createOrderItemRow)}
+                            {console.log(this.props)}
+                            {this.props.dishes.map(createOrderItemRow)}
                             <Row className="mt-4 h5">
                                     <Col xs={1}></Col>
                                     <Col xs={9}>Total amount:</Col>
-                                    <Col xs={2}> {`$${this.state.order_info.total_amount}`} </Col>
+                                    <Col xs={2}> {`$${this.props.total_amount}`} </Col>
                             </Row>
                             <Row>
                                 <Button className="mx-auto my-5" variant="success" onClick={this.placeOrder}>
@@ -287,7 +290,23 @@ class CheckoutOrder extends Component{
     }
 }
 
+const mapStateToProps = state => {
+    return {
+      restaurant_ID: state.cart.restaurant_ID,
+      dishes: state.cart.dishes,
+      total_amount: state.cart.total_amount
+    }
+}
+  
+const mapDispatchToProps = (dispatch) => {
+    return {
+        call_update_quantity: (x) => dispatch(update_quantity(x)),
+        call_delete_item: (x) => dispatch(delete_item(x)),
+        call_clear_cart: (x) => dispatch(clear_cart(x))
+    }
+}
 
-
-//export Login Component
-export default withRouter(CheckoutOrder);
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(CheckoutOrder);
