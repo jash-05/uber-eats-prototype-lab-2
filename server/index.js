@@ -4,6 +4,7 @@ const cors = require("cors");
 // const { Session } = require('express-session');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
+var kafka = require('./kafka/client');
 
 const app = express();
 
@@ -108,6 +109,28 @@ app.post('/register', (req, res) => {
     // console.log(req.session.user);
     res.send('registered successfully');
 })
+
+app.post('/book', function(req, res){
+    kafka.make_request('customers.create',req.body, function(err,results){
+        console.log('in result');
+        console.log(results);
+        if (err){
+            console.log("Inside err");
+            res.json({
+                status:"error",
+                msg:"System Error, Try Again."
+            })
+        }else{
+            console.log("Inside else");
+                res.json({
+                    updatedList:results
+                });
+
+                res.end();
+            }
+        
+    });
+});
 
 require("./routes/tutorial.routes")(app);
 require("./routes/customer.routes")(app);
