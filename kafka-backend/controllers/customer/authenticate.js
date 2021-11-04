@@ -2,10 +2,10 @@ const db = require("../../models/db");
 const Customer = db.customers;
 
 function handle_request(msg, callback) {
-    console.log("Inside create customer kafka backend")
-    const customer = new Customer(msg);
-    customer
-      .save(customer)
+    Customer.findOne({
+        "email_id": msg.email_id,
+        "pass": msg.pass
+    })
       .then(data => {
         callback(null, data)
       })

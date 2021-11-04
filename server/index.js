@@ -128,7 +128,6 @@ app.post('/book', function(req, res){
 
                 res.end();
             }
-        
     });
 });
 

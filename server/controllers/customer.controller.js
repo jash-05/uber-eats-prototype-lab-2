@@ -1,3 +1,4 @@
+const kafka = require('../kafka/client');
 const db = require("../models/db");
 const Customer = db.customers;
 
@@ -6,77 +7,69 @@ exports.create = (req, res) => {
     res.status(400).send({ message: "Content can not be empty!" });
     return;
   }
-
-  const customer = new Customer(req.body);
-
-  customer
-    .save(customer)
-    .then(data => {
-      req.session.user = {
-          user_type: "customer",
-          id: data.customer_ID
-      }
-      res.cookie('customer',data.customer_ID,{maxAge: 9000000, httpOnly: false, path : '/'});
-      res.send(data);
-    })
-    .catch(err => {
+  kafka.make_request('customers.create', req.body, function(err, data){
+    console.log(data);
+    if (err) {
       res.status(500).send({
-        message:
-          err.message || "Some error occurred while creating the Customer."
-      });
-    });
+        message: "Some error occured while creating the customer"
+      })
+    } else {
+      req.session.user = {
+        user_type: "customer",
+        id: data.customer_ID
+      }
+      res.cookie('customer', data.customer_ID, {maxAge: 9000000, httpOnly: false, path : '/'});
+      res.send(data);
+    }
+  })
 };
 
 exports.findAll = (req, res) => {
-  Customer.find()
-    .then(data => {
-      res.send(data);
-    })
-    .catch(err => {
+  kafka.make_request('customers.findAll', req.body, function(err, data){
+    console.log(data);
+    if (err) {
       res.status(500).send({
-        message:
-          err.message || "Some error occurred while retrieving customer."
-      });
-    });
+        message: "Some error occured while creating the customer"
+      })
+    } else {
+      res.send(data);
+    }
+  })
 };
 
 exports.authenticate = (req, res) => {
-  Customer.findOne({
-    "email_id": req.body.email_id,
-    "pass": req.body.pass
+  kafka.make_request('customers.authenticate', req.body, function(err, data){
+    console.log(data);
+    if (err) {
+      res.status(500).send({
+        message: "Some error occured while creating the customer"
+      })
+    } else {
+          if (!data)
+            res.status(404).send({ message: "Not found customer with email " + req.body.email_id });
+          else {
+            req.session.user = {
+                user_type: "customer",
+                id: data.customer_ID
+            }
+            res.cookie('customer',data.customer_ID,{maxAge: 9000000, httpOnly: false, path : '/'});
+            res.send(data);
+          }
+    }
   })
-    .then(data => {
-      console.log(data)
-      if (!data)
-        res.status(404).send({ message: "Not found customer with email " + req.body.email_id });
-      else {
-        req.session.user = {
-            user_type: "customer",
-            id: data.customer_ID
-        }
-        res.cookie('customer',data.customer_ID,{maxAge: 9000000, httpOnly: false, path : '/'});
-        res.send(data);
-      }
-    })
-    .catch(err => {
-      res
-        .status(500)
-        .send({ message: "Error retrieving customer with email=" + req.body.email_id });
-    });
 };
 
 exports.findOne = (req, res) => {
-  Customer.find({customer_ID: req.params.customerId})
-    .then(data => {
-      if (!data)
-        res.status(404).send({ message: "Not found Tutorial with id " + req.params.customerId });
-      else res.send(data);
-    })
-    .catch(err => {
-      res
-        .status(500)
-        .send({ message: "Error retrieving Tutorial with id=" + req.params.customerId });
-    });
+  kafka.make_request('customers.findOne', req.params, function(err, data){
+    console.log(data);
+    if (err) {
+      res.status(500).send({
+        message: "Some error occured while creating the customer"
+      })
+    } else {
+      res.send(data);
+    }
+  })
 };
 
 exports.update = (req, res) => {
@@ -85,18 +78,18 @@ exports.update = (req, res) => {
       message: "Data to update can not be empty!"
     });
   }
-
-  Customer.updateOne({customer_ID: req.params.customerId}, req.body, { useFindAndModify: false })
-    .then(data => {
-      if (!data) {
-        res.status(404).send({
-          message: `Cannot update Tutorial with id=${req.params.customerId}. Maybe Tutorial was not found!`
-        });
-      } else res.send({ message: "Tutorial was updated successfully." });
-    })
-    .catch(err => {
+  const msg = {
+    body: req.body,
+    params: req.params
+  }
+  kafka.make_request('customers.update', msg, function(err, data){
+    console.log(data);
+    if (err) {
       res.status(500).send({
-        message: "Error updating Tutorial with id=" + req.params.customerId
-      });
-    });
+        message: "Some error occured while creating the customer"
+      })
+    } else {
+      res.send(data);
+    }
+  })
 };
