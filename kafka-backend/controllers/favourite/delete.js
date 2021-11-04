@@ -2,15 +2,7 @@ const db = require("../../models/db");
 const Customer = db.customers;
 
 function handle_request(req, callback) {
-    let address_dict = {
-        'line1': req.address_line_1,
-        'line2': req.address_line_2,
-        'city': req.city,
-        'state_name': req.state,
-        'zipcode': req.zip,
-        'address_type': req.address_type
-    };
-    Customer.updateOne({customer_ID: req.customer_ID}, {$push: {addresses: address_dict}}, { useFindAndModify: false })
+    Customer.updateOne({customer_ID: req.customer_ID}, {$pull: {favourites: {restaurant_ID: req.restaurant_ID}}}, { useFindAndModify: false })
     .then(data => {
       if (!data) {
         callback(null, {
@@ -20,7 +12,7 @@ function handle_request(req, callback) {
     })
     .catch(err => {
       callback(null, {
-        message: "Error updating Tutorial with id=" + req.customer_ID
+        message: "Error updating Tutorial with id=" + req.body.customer_ID
       });
     });
 }

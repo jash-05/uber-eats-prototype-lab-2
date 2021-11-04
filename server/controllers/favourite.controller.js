@@ -1,3 +1,4 @@
+const kafka = require('../kafka/client');
 const db = require("../models/db");
 const Customer = db.customers;
 
@@ -7,44 +8,43 @@ exports.create = (req, res) => {
       message: "Data to update can not be empty!"
     });
   }
-
-  Customer.updateOne({customer_ID: req.body.customer_ID}, {$push: {favourites: {restaurant_ID: req.body.restaurant_ID}}}, { useFindAndModify: false })
-    .then(data => {
-      if (!data) {
-        res.status(404).send({
-          message: `Cannot update Tutorial with id=${req.body.customer_ID}. Maybe Tutorial was not found!`
-        });
-      } else res.send({ message: "Tutorial was updated successfully." });
-    })
-    .catch(err => {
+  kafka.make_request('favourites.create', req.body, function(err, data){
+    console.log(data);
+    if (err) {
       res.status(500).send({
-        message: "Error updating Tutorial with id=" + req.body.customer_ID
-      });
-    });
+        message: "Some error occured while creating the customer"
+      })
+    } else {
+      res.send(data);
+    }
+  })
 };
 
 exports.delete = (req, res) => {
-  if (!req.body) {
-    return res.status(400).send({
-      message: "Data to update can not be empty!"
-    });
-  }
-
-  Customer.updateOne({customer_ID: req.params.customer_ID}, {$pull: {favourites: {restaurant_ID: req.params.restaurant_ID}}}, { useFindAndModify: false })
-    .then(data => {
-      if (!data) {
-        res.status(404).send({
-          message: `Cannot update Tutorial with id=${req.params.customer_ID}. Maybe Tutorial was not found!`
-        });
-      } else res.send({ message: "Tutorial was updated successfully." });
-    })
-    .catch(err => {
+  kafka.make_request('favourites.delete', req.params, function(err, data){
+    console.log(data);
+    if (err) {
       res.status(500).send({
-        message: "Error updating Tutorial with id=" + req.params.customer_ID
-      });
-    });
+        message: "Some error occured while creating the customer"
+      })
+    } else {
+      res.send(data);
+    }
+  })
 };
 
+exports.findAll = (req, res) => {
+  kafka.make_request('favourites.findAll', req.params, function(err, data){
+    console.log(data);
+    if (err) {
+      res.status(500).send({
+        message: "Some error occured while fetching favourites"
+      })
+    } else {
+      res.send(data);
+    }
+  })
+}
 
 // // Create and Save a new Favourite
 // exports.create = (req, res) => {
