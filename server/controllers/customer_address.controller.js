@@ -1,3 +1,4 @@
+const kafka = require('../kafka/client');
 const db = require("../models/db");
 const Customer = db.customers;
 
@@ -9,68 +10,49 @@ exports.create = (req, res) => {
         message: "Content can not be empty!"
       });
     }
-
-    // Create object of input variables
-    let address_dict = {
-        'line1': req.body.address_line_1,
-        'line2': req.body.address_line_2,
-        'city': req.body.city,
-        'state_name': req.body.state,
-        'zipcode': req.body.zip,
-        'address_type': req.body.address_type
-    };
-
-    Customer.updateOne({customer_ID: req.body.customer_ID}, {$push: {addresses: address_dict}}, { useFindAndModify: false })
-    .then(data => {
-      if (!data) {
-        res.status(404).send({
-          message: `Cannot update Tutorial with id=${req.body.customer_ID}. Maybe Tutorial was not found!`
-        });
-      } else res.send({ message: "Tutorial was updated successfully." });
+    kafka.make_request('customer_addresses.create', req.body, function(err, data){
+      console.log(data);
+      if (err) {
+        res.status(500).send({
+          message: "Some error occured while creating the customer"
+        })
+      } else {
+        res.send(data);
+      }
     })
-    .catch(err => {
-      res.status(500).send({
-        message: "Error updating Tutorial with id=" + req.body.customer_ID
-      });
-    });
   };
 
-  exports.delete = (req, res) => {
+exports.delete = (req, res) => {
     // Validate request
     if (!req.body) {
       res.status(400).send({
         message: "Content can not be empty!"
       });
     }
-
-    Customer.updateOne({customer_ID: req.params.customer_ID}, {$pull: {addresses: {address_type: req.params.address_type}}}, { useFindAndModify: false })
-    .then(data => {
-      if (!data) {
-        res.status(404).send({
-          message: `Cannot update Tutorial with id=${req.params.customer_ID}. Maybe Tutorial was not found!`
-        });
-      } else res.send({ message: "Tutorial was updated successfully." });
+    kafka.make_request('customer_addresses.delete', req.params, function(err, data){
+      console.log(data);
+      if (err) {
+        res.status(500).send({
+          message: "Some error occured while creating the customer"
+        })
+      } else {
+        res.send(data);
+      }
     })
-    .catch(err => {
-      res.status(500).send({
-        message: "Error updating Tutorial with id=" + req.params.customer_ID
-      });
-    });
   };
 
 exports.findAll = (req, res) => {
-    Customer.findOne({customer_ID: req.params.customer_ID}, 'addresses')
-      .then(data => {
-        if (!data)
-          res.status(404).send({ message: "Not found Tutorial with id " + req.params.customerId });
-        else res.send(data);
+  kafka.make_request('customer_addresses.findAll', req.params, function(err, data){
+    console.log(data);
+    if (err) {
+      res.status(500).send({
+        message: "Some error occured while creating the customer"
       })
-      .catch(err => {
-        res
-          .status(500)
-          .send({ message: "Error retrieving Tutorial with id=" + req.params.customerId });
-      });
-  };
+    } else {
+      res.send(data);
+    }
+  })
+};
 
 // // Retrieve all Favourites from the database.
 // exports.findAll = (req, res) => {
