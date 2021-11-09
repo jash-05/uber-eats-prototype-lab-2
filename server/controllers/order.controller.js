@@ -1,3 +1,4 @@
+const kafka = require('../kafka/client');
 const db = require("../models/db");
 const Order = db.orders;
 const Customer = db.customers;
@@ -20,44 +21,17 @@ exports.placeOrder = async (req, res) => {
       res.status(400).send({ message: "Content can not be empty!" });
       return;
     }
-    console.log(req.body)
-    const customerDetails = await Customer.findOne({customer_ID: req.body.customer_ID})
-    const restaurantDetails = await Restaurant.findOne({restaurant_ID: req.body.restaurant_ID})
-    console.log(customerDetails)
-    const orderDetails = {
-        order_ID: uuidv4(),
-        order_status: 'placed',
-        order_type: req.body.order_type,
-        order_placed_timestamp: MOMENT().format( 'YYYY-MM-DD  HH:mm:ss.000' ),
-        total_amount: req.body.total_amount,
-        order_items: req.body.order_items,
-        customer_info: {
-            customer_ID: customerDetails.customer_ID,
-            first_name: customerDetails.first_name,
-            last_name: customerDetails.last_name,
-            phone_number: customerDetails.phone_number,
-            address: customerDetails.addresses.find(x => x.address_ID === req.body.address_ID)
-        },
-        restaurant_info: {
-            restaurant_ID: restaurantDetails.restaurant_ID,
-            restaurant_name: restaurantDetails.restaurant_name,
-            address: restaurantDetails.address
-        }
-    }
-    const order = new Order(orderDetails);
-
-    order
-      .save(order)
-      .then(data => {
-        res.send(data);
-      })
-      .catch(err => {
+    kafka.make_request('orders.placeOrder', req.body, function(err, data){
+      console.log(data);
+      if (err) {
         res.status(500).send({
-          message:
-            err.message || "Some error occurred while creating the Customer."
-        });
-      });
-  };
+          message: "Some error occured while creating the customer"
+        })
+      } else {
+        res.send(data);
+      }
+    })
+};
 
 
 exports.updateStatus = (req, res) => {
@@ -66,20 +40,16 @@ exports.updateStatus = (req, res) => {
         message: "Data to update can not be empty!"
       });
     }
-  
-    Order.updateOne({order_ID: req.body.order_ID}, {order_status: req.body.order_status} , { useFindAndModify: false })
-      .then(data => {
-        if (!data) {
-          res.status(404).send({
-            message: `Cannot update Tutorial with id=${req.body.order_ID}. Maybe Tutorial was not found!`
-          });
-        } else res.send({ message: "Tutorial was updated successfully." });
-      })
-      .catch(err => {
+    kafka.make_request('orders.updateStatus', req.body, function(err, data){
+      console.log(data);
+      if (err) {
         res.status(500).send({
-          message: "Error updating Tutorial with id=" + req.body.order_ID
-        });
-      });
+          message: "Some error occured while creating the customer"
+        })
+      } else {
+        res.send(data);
+      }
+    })
   };
 
 exports.fetchOrdersForRestaurant = (req, res) => {
