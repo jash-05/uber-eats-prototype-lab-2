@@ -123,24 +123,24 @@ class RestaurantProfile extends Component{
                 this.setState({
                     const_restaurant_name: response.data.restaurant_name,
                     restaurant_name: response.data.restaurant_name,
-                    short_address: `${response.data.line1} ${response.data.line2}`,
-                    full_address: `${response.data.line1} ${response.data.line2}, ${response.data.city}, ${response.data.state_name} ${response.data.zipcode}`,
+                    short_address: `${response.data.address.line1} ${response.data.address.line2}`,
+                    full_address: `${response.data.address.line1} ${response.data.address.line2}, ${response.data.address.city}, ${response.data.address.state_name} ${response.data.address.zipcode}`,
                     const_cover_image: response.data.cover_image,
                     cover_image: response.data.cover_image,
                     about: response.data.about,
                     const_about: response.data.about,
                     owner_name: response.data.owner_name,
-                    line1: response.data.line1,
-                    line2: response.data.line2,
-                    city: response.data.city,
-                    state_name: response.data.state_name,
-                    zipcode: response.data.zipcode,
+                    line1: response.data.address.line1,
+                    line2: response.data.address.line2,
+                    city: response.data.address.city,
+                    state_name: response.data.address.state_name,
+                    zipcode: response.data.address.zipcode,
                     phone_number: response.data.phone_number,
-                    vegetarian: ((response.data.vegetarian===1) ? true : false),
-                    non_vegetarian: ((response.data.non_vegetarian===1) ? true : false),
-                    vegan: ((response.data.vegan===1) ? true : false),
-                    delivery: ((response.data.delivery===1) ? true : false),
-                    pickup: ((response.data.pickup===1) ? true : false),
+                    vegetarian: ((response.data.vegetarian) ? true : false),
+                    non_vegetarian: ((response.data.non_vegetarian) ? true : false),
+                    vegan: ((response.data.vegan) ? true : false),
+                    delivery: ((response.data.delivery) ? true : false),
+                    pickup: ((response.data.pickup) ? true : false),
                     opening_time: response.data.opening_time,
                     closing_time: response.data.closing_time
                 })
@@ -446,9 +446,10 @@ class RestaurantProfile extends Component{
     }
     addNewDish = async () => {
         try {
-            await this.uploadDishImageToS3()
+            await this.uploadDishImageToS3();
             let data = this.state.new_dish;
-            data['restaurant_ID'] = parseInt(this.state.restaurant_ID);
+            data['restaurant_ID'] = this.state.restaurant_ID;
+            console.log("Adding new dish: ")
             console.log(data);
             const response = await axios.post(`http://${server_IP}:3001/dish`, data);
             console.log("Status Code: ", response.status);

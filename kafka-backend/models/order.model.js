@@ -7,6 +7,7 @@ module.exports = mongoose => {
           order_status: String,
           order_type: String,
           order_placed_timestamp: String,
+          specialInstructions: String,
           total_amount: Number,
           order_items: [
               {

@@ -68,7 +68,7 @@ class Favourites extends Component{
     favouritesHandler = async (e) => {
         let restaurants = []
         for(let i=0;i<this.state.favouriteRestaurants.length;i++){
-            if ((this.state.favouriteRestaurants[i].restaurant_ID === parseInt(e.target.id)) && (cookie.load('customer'))){
+            if ((this.state.favouriteRestaurants[i].restaurant_ID === e.target.id) && (cookie.load('customer'))){
                 try {
                     axios.defaults.withCredentials = true;
                     console.log('Sending request to delete favourite restaurant')

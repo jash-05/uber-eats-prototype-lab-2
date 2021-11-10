@@ -13,6 +13,7 @@ async function handle_request(msg, callback) {
         order_status: 'placed',
         order_type: msg.order_type,
         order_placed_timestamp: MOMENT().format( 'YYYY-MM-DD  HH:mm:ss.000' ),
+        specialInstructions: msg.specialInstructions,
         total_amount: msg.total_amount,
         order_items: msg.order_items,
         customer_info: {

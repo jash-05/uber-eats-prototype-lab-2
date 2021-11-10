@@ -32,7 +32,8 @@ class CheckoutOrder extends Component{
             order_info: {},
             selected_address_ID: 1,
             showModal: false,
-            new_address: {}
+            new_address: {},
+            specialInstructions: ""
         }
         //Bind the handlers to this class
         this.fetchCurrentOrder = this.fetchCurrentOrder.bind(this);
@@ -135,12 +136,14 @@ class CheckoutOrder extends Component{
     addNewAddress = async () => {
         let data = this.state.new_address;
         data['customer_ID'] = this.state.customer_ID;
+        console.log(data)
         try {
             const response = await axios.post(`http://${server_IP}:3001/customerAddress`, data);
             console.log("Status Code: ", response.status);
             if (response.status === 200){
                 console.log("Successful request");
                 console.log(response.data)
+                await this.fetchCustomerAddresses(cookie.load('customer'));
                 this.setState({
                     showModal: !this.state.showModal,
                     new_address: {}
@@ -153,6 +156,11 @@ class CheckoutOrder extends Component{
             console.error(err)
         }
     }
+    specialInstructionsChangeHandler = (e) => {
+        this.setState({
+            specialInstructions: e.target.value
+        })
+    }
     placeOrder = async () => {
         try {
             console.log('About to place order')
@@ -164,7 +172,8 @@ class CheckoutOrder extends Component{
                 order_type: sessionStorage.getItem("order_type"),
                 total_amount: this.props.total_amount,
                 order_items: this.props.dishes,
-                address_ID: this.state.selected_address_ID
+                address_ID: this.state.selected_address_ID,
+                specialInstructions: this.state.specialInstructions
             }
             console.log(data)
             const response = await axios.post(`http://${server_IP}:3001/placeOrder`, data);
@@ -183,7 +192,6 @@ class CheckoutOrder extends Component{
     }
     render(){
         console.log("Rendering")
-        console.log(this.props)
         const createOrderItemRow = row => {
             return (
                 <Row className="my-1">
@@ -237,12 +245,12 @@ class CheckoutOrder extends Component{
 
                                     <Form.Group className="mb-3" controlId="formGridAddress1">
                                         <Form.Label>Street Address</Form.Label>
-                                        <Form.Control name="line1" onChange={this.addressFieldsChangeHandler} placeholder="Eg: 1234 Main St" />
+                                        <Form.Control name="address_line_1" onChange={this.addressFieldsChangeHandler} placeholder="Eg: 1234 Main St" />
                                     </Form.Group>
 
                                     <Form.Group className="mb-3" controlId="formGridAddress2">
                                         {/* <Form.Label>Street Address Line 2 (optional)</Form.Label> */}
-                                        <Form.Control name="line2" onChange={this.addressFieldsChangeHandler} placeholder="Apartment, studio, or floor (optional)" />
+                                        <Form.Control name="address_line_2" onChange={this.addressFieldsChangeHandler} placeholder="Apartment, studio, or floor (optional)" />
                                     </Form.Group>
 
                                     <Row className="mb-3">
@@ -253,12 +261,12 @@ class CheckoutOrder extends Component{
 
                                         <Form.Group as={Col} controlId="formGridState">
                                         <Form.Label>State</Form.Label>
-                                        <Form.Control name="state_name" onChange={this.addressFieldsChangeHandler} />
+                                        <Form.Control name="state" onChange={this.addressFieldsChangeHandler} />
                                         </Form.Group>
 
                                         <Form.Group as={Col} controlId="formGridZip">
                                         <Form.Label>Zip</Form.Label>
-                                        <Form.Control name="zipcode" onChange={this.addressFieldsChangeHandler} type="number" />
+                                        <Form.Control name="zip" onChange={this.addressFieldsChangeHandler} type="number" />
                                         </Form.Group>
                                     </Row>
                                 </Modal.Body>
@@ -277,6 +285,11 @@ class CheckoutOrder extends Component{
                             </Row>
                             {console.log(this.props)}
                             {this.props.dishes.map(createOrderItemRow)}
+                            <Row className="h3 mt-3 mb-3">
+                                <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea1">
+                                    <Form.Control as="textarea" rows={3} placeholder="Add special instructions to your order .." onChange={this.specialInstructionsChangeHandler}/>
+                                </Form.Group>
+                            </Row>
                             <Row className="mt-4 h5">
                                     <Col xs={1}></Col>
                                     <Col xs={9}>Total amount:</Col>

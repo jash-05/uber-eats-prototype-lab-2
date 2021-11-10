@@ -1,5 +1,6 @@
 const db = require("../models/db");
 const Restaurant = db.restaurants;
+const {v4: uuidv4} = require('uuid');
 
 exports.create = (req, res) => {
   // Validate request
@@ -11,6 +12,7 @@ exports.create = (req, res) => {
 
   // Create object of input variables
     let dish_dict = {
+        dish_ID: uuidv4(),
         dish_name: req.body.dish_name,
         category_ID: req.body.category_ID,
         main_ingredients: req.body.main_ingredients,
