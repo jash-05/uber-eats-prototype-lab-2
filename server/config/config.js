@@ -8,5 +8,6 @@
 //   };
 
 module.exports = {
+  SERVER_IP: "localhost",
   url: "mongodb+srv://root:root12345@cluster0.gmsya.mongodb.net/Demo?retryWrites=true&w=majority"
 }

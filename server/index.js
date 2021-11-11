@@ -4,6 +4,7 @@ const cors = require("cors");
 // const { Session } = require('express-session');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
+var kafka = require('./kafka/client');
 
 const app = express();
 
@@ -109,14 +110,35 @@ app.post('/register', (req, res) => {
     res.send('registered successfully');
 })
 
+app.post('/book', function(req, res){
+    kafka.make_request('customers.create',req.body, function(err,results){
+        console.log('in result');
+        console.log(results);
+        if (err){
+            console.log("Inside err");
+            res.json({
+                status:"error",
+                msg:"System Error, Try Again."
+            })
+        }else{
+            console.log("Inside else");
+                res.json({
+                    updatedList:results
+                });
+
+                res.end();
+            }
+    });
+});
+
 require("./routes/tutorial.routes")(app);
 require("./routes/customer.routes")(app);
-// require("./routes/restaurant.routes.js")(app);
-// require("./routes/favourite.routes.js")(app);
-// require("./routes/customer_address.routes.js")(app);
-// require("./routes/restaurant_address.routes.js")(app);
-// require("./routes/dish.routes.js")(app);
-// require("./routes/order.routes.js")(app);
+require("./routes/restaurant.routes.js")(app);
+require("./routes/favourite.routes.js")(app);
+require("./routes/customer_address.routes.js")(app);
+require("./routes/restaurant_address.routes.js")(app);
+require("./routes/dish.routes.js")(app);
+require("./routes/order.routes.js")(app);
 
 app.listen(3001, () => {
     console.log('Server is running on port 3001');

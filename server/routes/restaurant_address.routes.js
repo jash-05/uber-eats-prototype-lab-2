@@ -4,9 +4,9 @@ module.exports = app => {
     // Create a new restaurant address
     app.post("/restaurantAddress", restaurant_addresses.create);
   
-    // Retrieve all restaurant addresses
+    // // Retrieve all restaurant addresses
     app.get("/restaurantAddress/:restaurant_ID", restaurant_addresses.findOne);
 
     // Update restaurant address
-    app.put('/restaurantAddress', restaurant_addresses.update);
+    app.put('/restaurantAddress', restaurant_addresses.create);
   };

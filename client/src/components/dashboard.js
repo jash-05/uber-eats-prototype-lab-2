@@ -176,7 +176,7 @@ class Dashboard extends Component{
             favourite_restaurants = await this.getFavouritesForCustomer(cookie.load('customer'))
         }
         console.log(favourite_restaurants)
-        let restaurantData = [] 
+        let restaurantData = []
         try {
             let payload = {...data, city: this.state.city, customer_ID: cookie.load('customer')}
             const response = await axios.get(`http://${server_IP}:3001/restaurants`, {params: payload})
@@ -210,7 +210,7 @@ class Dashboard extends Component{
     favouritesHandler = async (e) => {
         let restaurants = []
         for(let i=0;i<this.state.fetchedRestaurants.length;i++){
-            if ((this.state.fetchedRestaurants[i].restaurant_ID === parseInt(e.target.id)) && (cookie.load('customer'))){
+            if ((this.state.fetchedRestaurants[i].restaurant_ID === e.target.id) && (cookie.load('customer'))){
                 try {
                     axios.defaults.withCredentials = true;
                     if (!this.state.fetchedRestaurants[i].favourite){

@@ -4,7 +4,7 @@ module.exports = app => {
     // Create a new favourite
     app.post("/favourites", favourites.create);
   
-    // Retrieve all favourites
+    // // Retrieve all favourites
     app.get("/favourites/:customer_ID", favourites.findAll);
   
     // Delete a favourite restaurant for a customer

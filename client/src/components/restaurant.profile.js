@@ -25,6 +25,7 @@ import Card from 'react-bootstrap/Card';
 import Accordion from 'react-bootstrap/Accordion';
 import RestaurantNavbar from './restaurant.navbar';
 import server_IP from '../config/server.config.js';
+import Pagination from 'react-bootstrap/Pagination';
 
 // Define a Login Component
 class RestaurantProfile extends Component{
@@ -65,8 +66,9 @@ class RestaurantProfile extends Component{
                 category_ID: 1
             },
             fetchedOrders: [],
-            filteredOrders: [],
-            selectedOrderFilter: "all"
+            selectedOrderFilter: "all",
+            paginationLimit: 5,
+            pageNumbers: []
         }
         //Bind the handlers to this class
         this.setRestaurantState = this.setRestaurantState.bind(this);
@@ -100,7 +102,7 @@ class RestaurantProfile extends Component{
         this.setRestaurantState();
         this.fetchRestaurantDetails();
         this.fetchDishes();
-        this.fetchOrders();
+        this.fetchOrders('all', 5, 1);
     }
     setRestaurantState = async () => {
         if (cookie.load('restaurant')) {
@@ -121,24 +123,24 @@ class RestaurantProfile extends Component{
                 this.setState({
                     const_restaurant_name: response.data.restaurant_name,
                     restaurant_name: response.data.restaurant_name,
-                    short_address: `${response.data.line1} ${response.data.line2}`,
-                    full_address: `${response.data.line1} ${response.data.line2}, ${response.data.city}, ${response.data.state_name} ${response.data.zipcode}`,
+                    short_address: `${response.data.address.line1} ${response.data.address.line2}`,
+                    full_address: `${response.data.address.line1} ${response.data.address.line2}, ${response.data.address.city}, ${response.data.address.state_name} ${response.data.address.zipcode}`,
                     const_cover_image: response.data.cover_image,
                     cover_image: response.data.cover_image,
                     about: response.data.about,
                     const_about: response.data.about,
                     owner_name: response.data.owner_name,
-                    line1: response.data.line1,
-                    line2: response.data.line2,
-                    city: response.data.city,
-                    state_name: response.data.state_name,
-                    zipcode: response.data.zipcode,
+                    line1: response.data.address.line1,
+                    line2: response.data.address.line2,
+                    city: response.data.address.city,
+                    state_name: response.data.address.state_name,
+                    zipcode: response.data.address.zipcode,
                     phone_number: response.data.phone_number,
-                    vegetarian: ((response.data.vegetarian===1) ? true : false),
-                    non_vegetarian: ((response.data.non_vegetarian===1) ? true : false),
-                    vegan: ((response.data.vegan===1) ? true : false),
-                    delivery: ((response.data.delivery===1) ? true : false),
-                    pickup: ((response.data.pickup===1) ? true : false),
+                    vegetarian: ((response.data.vegetarian) ? true : false),
+                    non_vegetarian: ((response.data.non_vegetarian) ? true : false),
+                    vegan: ((response.data.vegan) ? true : false),
+                    delivery: ((response.data.delivery) ? true : false),
+                    pickup: ((response.data.pickup) ? true : false),
                     opening_time: response.data.opening_time,
                     closing_time: response.data.closing_time
                 })
@@ -159,21 +161,21 @@ class RestaurantProfile extends Component{
             const response = await axios.get(`http://${server_IP}:3001/dish`, {params:{restaurant_ID: this.state.restaurant_ID}})
             console.log("Status Code : ",response.status);
             if(response.status === 200){
-                console.log("Successful request");
+                console.log("Successful request for fetching dishes");
                 console.log(response.data);
-                for (let i=0;i < response.data.length; i++){
-                    let main_ingredients = response.data[i].main_ingredients;
+                for (let i=0;i < response.data.dishes.length; i++){
+                    let main_ingredients = response.data.dishes[i].main_ingredients;
                     if ((main_ingredients) && (main_ingredients.length > 20)) {
                         main_ingredients = main_ingredients.slice(0,80).concat('...')
                     }
                     dishesData.push({
-                        'dish_ID': response.data[i].dish_ID,
-                        'dish_name': response.data[i].dish_name,
-                        'category_ID': response.data[i].category_ID,
+                        'dish_ID': response.data.dishes[i].dish_ID,
+                        'dish_name': response.data.dishes[i].dish_name,
+                        'category_ID': response.data.dishes[i].category_ID,
                         'main_ingredients': main_ingredients,
-                        'price': response.data[i].price,
-                        'about': response.data[i].about,
-                        "dish_image": response.data[i].dish_image,
+                        'price': response.data.dishes[i].price,
+                        'about': response.data.dishes[i].about,
+                        "dish_image": response.data.dishes[i].dish_image,
                         "quantity": 0
                     });
                 }
@@ -189,18 +191,47 @@ class RestaurantProfile extends Component{
             console.error(err);
         }
     }
-    fetchOrders = async () => {
+    fetchOrders = async (filter, paginationLimit, pageNumber) => {
         try {
-            await this.setRestaurantState();
-            console.log('Fetching dishes')
-            const response = await axios.get(`http://${server_IP}:3001/fetchOrdersForRestaurant`, {params:{restaurant_ID: this.state.restaurant_ID}})
+            if (!this.state.restaurant_ID) {
+                await this.setRestaurantState();
+            }
+            console.log('Fetching orders')
+            const data = {
+                restaurant_ID: this.state.restaurant_ID,
+                filter: filter,
+                toSkip: (pageNumber - 1) * paginationLimit,
+                limit: parseInt(paginationLimit)
+            }
+            console.log('Sending request to fetch orders with the following params: ')
+            console.log(data)
+            const response = await axios.get(`http://${server_IP}:3001/fetchOrdersForRestaurant`, {params: data})
             console.log("Status Code : ",response.status);
             if(response.status === 200){
                 console.log("Successful request of fetching orders");
                 console.log(response.data);
+                let page_numbers = this.state.pageNumbers
+                if (parseInt(pageNumber) === 1) {
+                    const payload = {
+                        restaurant_ID: this.state.restaurant_ID,
+                        filter: filter,
+                        limit: parseInt(paginationLimit)
+                    }
+                    const res = await axios.get(`http://${server_IP}:3001/fetchPageNumbersForRestaurantOrders`, {params: payload})
+                    console.log("Successful request of fetching page numbers")
+                    console.log(res.data)
+                    let updated_page_numbers = []
+                    for (let i=1; i<=res.data.numberOfPages; i++) {
+                        updated_page_numbers.push({
+                            pageNumber: i,
+                            isHighlighted: (i===1 ? true : false)
+                        })
+                    }
+                    page_numbers = updated_page_numbers;
+                }
                 this.setState({
                     fetchedOrders: response.data,
-                    filteredOrders: response.data
+                    pageNumbers: page_numbers
                 })
                 console.log('Cookie status: ', cookie.load('cookie'));
             } else{
@@ -415,9 +446,10 @@ class RestaurantProfile extends Component{
     }
     addNewDish = async () => {
         try {
-            await this.uploadDishImageToS3()
+            await this.uploadDishImageToS3();
             let data = this.state.new_dish;
-            data['restaurant_ID'] = parseInt(this.state.restaurant_ID);
+            data['restaurant_ID'] = this.state.restaurant_ID;
+            console.log("Adding new dish: ")
             console.log(data);
             const response = await axios.post(`http://${server_IP}:3001/dish`, data);
             console.log("Status Code: ", response.status);
@@ -437,26 +469,17 @@ class RestaurantProfile extends Component{
             console.error(err)
         }
     }
-    selectedOrderFilterChangeHandler = (e) => {
-        let filter = e.target.value;
-        console.log("Filter: ", filter)
-        if (filter === "all"){
-            this.setState({
-                selectedOrderFilter: filter,
-                filteredOrders: this.state.fetchedOrders
-            })
-        } else {
-            let filteredOrders = []
-            for(let i=0;i<this.state.fetchedOrders.length;i++) {
-                if (this.state.fetchedOrders[i].order_status === filter) {
-                    filteredOrders.push(this.state.fetchedOrders[i])
-                }
-            }
-            this.setState({
-                selectedOrderFilter: filter,
-                filteredOrders: filteredOrders
-            })
-        }
+    selectedOrderFilterChangeHandler = async (e) => {
+        await this.fetchOrders(e.target.value, this.state.paginationLimit, 1)
+        this.setState({
+            selectedOrderFilter: e.target.value
+        })
+    }
+    paginationLimitChangeHandler = async (e) => {
+        await this.fetchOrders(this.state.selectedOrderFilter, e.target.value, 1);
+        this.setState({
+            paginationLimit: e.target.value
+        })
     }
     orderStatusChangeHandler = async (e) => {
         if (["placed", "delivered", "cancelled"].includes(e.target.name)) {
@@ -479,8 +502,29 @@ class RestaurantProfile extends Component{
             }
         }
     }
+    paginationButtonClickHandler = async (e) => {
+        await this.fetchOrders(this.state.selectedOrderFilter, this.state.paginationLimit, parseInt(e.target.text))
+        let updatedPageNumbers = []
+        for (let i=0; i<this.state.pageNumbers.length; i++) {
+            if (this.state.pageNumbers[i].pageNumber === parseInt(e.target.text)) {
+                updatedPageNumbers.push({
+                    ...this.state.pageNumbers[i],
+                    isHighlighted: true
+                })
+            } else {
+                updatedPageNumbers.push({
+                    ...this.state.pageNumbers[i],
+                    isHighlighted: false
+                })
+            }
+        }
+        this.setState({
+            pageNumbers: updatedPageNumbers
+        })
+    }
     render(){
         console.log("Rendering")
+        console.log(this.state.pageNumbers)
         let redirectVar = null;
         if (!cookie.load('restaurant')){
             redirectVar = <Redirect to="/welcomeUser"/>
@@ -545,7 +589,7 @@ class RestaurantProfile extends Component{
                             Status: <strong>{capitalizeFirstLetter(((row.order_status==="placed") ? "New Order" : (row.order_status==="cancelled" ? "Preparing" : row.order_status)))}</strong>
                         </Col>
                         <Col xs={3}>
-                            Order # {row.order_ID}
+                            Order #{row.order_ID.slice(0,3).toUpperCase()}
                         </Col>
                         <Col xs={2}>
                             {`$${row.total_amount ? row.total_amount : ""}`}
@@ -553,17 +597,17 @@ class RestaurantProfile extends Component{
                         </Row>
                     </Card.Header>
                     <Card.Body>
-                        <Link to={`/customerPublicProfile/${row.customer_ID}`} style={{ textDecoration: 'none' }}>
-                            <Card.Title className="text-dark">{`${row.first_name} ${row.last_name}`}</Card.Title>
+                        <Link to={`/customerPublicProfile/${row.customer_info.customer_ID}`} style={{ textDecoration: 'none' }}>
+                            <Card.Title className="text-dark">{`${row.customer_info.first_name} ${row.customer_info.last_name}`}</Card.Title>
                         </Link>
                         <Card.Text>
-                            {`${row.line1} ${row.line2}, ${row.city}, ${row.state_name} ${row.zipcode}`}
+                            {`${row.customer_info.line1} ${row.customer_info.line2}, ${row.customer_info.city}, ${row.customer_info.state_name} ${row.customer_info.zipcode}`}
                         </Card.Text>
                         <Accordion className="my-3">
                         <Accordion.Item eventKey="0">
                             <Accordion.Header>View order details</Accordion.Header>
                             <Accordion.Body>
-                                {formatDishes(row.dish_IDs.split(','), row.dish_names.split(','), row.dish_prices.split(','), row.dish_quantities.split(',')).map(createDishItemRow)}
+                                {row.order_items.map(createDishItemRow)}
                                 <Row className="mt-4">
                                     <Col xs={1}></Col>
                                     <Col xs={9}> Total amount: </Col>
@@ -589,7 +633,7 @@ class RestaurantProfile extends Component{
                                 </DropdownButton>
                             </Col>
                             <Col xs={4}>
-                                <Link to={`/customerPublicProfile/${row.customer_ID}`} style={{ textDecoration: 'none' }}>
+                                <Link to={`/customerPublicProfile/${row.customer_info.customer_ID}`} style={{ textDecoration: 'none' }}>
                                     <Button variant="dark">Visit customer profile</Button>
                                 </Link>
                             </Col>
@@ -597,6 +641,13 @@ class RestaurantProfile extends Component{
                     </Card.Body>
                     </Card>
                 </Col>
+            )
+        }
+        const createPageNumberButtons = obj => {
+            return (
+                <Pagination.Item key={obj.pageNumber} active={obj.isHighlighted} onClick={this.paginationButtonClickHandler}>
+                    {obj.pageNumber}
+                </Pagination.Item>
             )
         }
         return(
@@ -828,15 +879,30 @@ class RestaurantProfile extends Component{
                         <Tab eventKey="third" title={<span className="display-6 text-dark" style={{fontSize: "1.75rem"}}>Orders</span>}>
                             <Container className="my-5">
                                 <Row className="my-4">
-                                    <Form.Select onChange={this.selectedOrderFilterChangeHandler}>
-                                        <option value="all">All orders</option>
-                                        <option value="placed">New orders</option>
-                                        <option value="delivered">Delivered orders</option>
-                                        <option value="cancelled">Preparing orders</option>
-                                    </Form.Select>
+                                    <Col xs={6}>
+                                        <Form.Select onChange={this.selectedOrderFilterChangeHandler}>
+                                            <option value="all">All orders</option>
+                                            <option value="placed">New orders</option>
+                                            <option value="delivered">Delivered orders</option>
+                                            <option value="cancelled">Preparing orders</option>
+                                        </Form.Select>
+                                    </Col>
+                                    <Col xs={1}></Col>
+                                    <Col xs={1}>
+                                        <Form.Select onChange={this.paginationLimitChangeHandler} defaultValue="5">
+                                            <option value="2">2</option>
+                                            <option value="5">5</option>
+                                            <option value="10">10</option>
+                                        </Form.Select>
+                                    </Col>
                                 </Row>
                                 <Row>
-                                    {(this.state.filteredOrders.length ? this.state.filteredOrders.map(createOrderRow) : "")}
+                                    {(this.state.fetchedOrders.length ? this.state.fetchedOrders.map(createOrderRow) : "")}
+                                </Row>
+                                <Row className="mx-5 mt-3 px-5">
+                                    <Pagination className="mx-5  px-5" size="lg">
+                                        {this.state.pageNumbers.map(createPageNumberButtons)}
+                                    </Pagination>
                                 </Row>
                             </Container>
                         </Tab>

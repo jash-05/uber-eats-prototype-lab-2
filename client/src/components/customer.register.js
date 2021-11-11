@@ -16,6 +16,7 @@ import {Redirect} from 'react-router';
 import Navbar from './navbar';
 import { Link } from 'react-router-dom';
 import server_IP from '../config/server.config.js';
+const {v4: uuidv4} = require('uuid');
 
 // Define a Login Component
 class CustomerRegister extends Component{
@@ -148,6 +149,7 @@ class CustomerRegister extends Component{
         e.preventDefault();
         await this.uploadImageToS3()
         const data = {
+            customer_ID: uuidv4(),
             first_name : this.state.first_name,
             last_name: this.state.last_name,
             email_id: this.state.email,
@@ -155,7 +157,18 @@ class CustomerRegister extends Component{
             country: this.state.country,
             phone_number: this.state.phone_number,
             dob: this.state.dob,
-            profile_picture: this.state.profile_picture
+            profile_picture: this.state.profile_picture,
+            nickname: this.state.nickname,
+            addresses: [
+                {
+                    address_type: "primary",
+                    line1: this.state.address_line_1,
+                    line2: this.state.address_line_2,
+                    city: this.state.city,
+                    state_name: this.state.state,
+                    zipcode: this.state.zip
+                }
+            ]
         }
         console.log(data)
         //set the with credentials to true
@@ -168,32 +181,11 @@ class CustomerRegister extends Component{
                     console.log("Successful request");
                     console.log(response.data);
                     console.log('Cookie status: ', cookie.load('cookie'));
-                    const address_data = {
-                        customer_ID: response.data.customer_id,
-                        address_line_1: this.state.address_line_1,
-                        address_line_2: this.state.address_line_2,
-                        city: this.state.city,
-                        state: this.state.state,
-                        zip: this.state.zip,
-                        address_type: "primary"
-                    }
-                    console.log(address_data);
-                    axios.post(`http://${server_IP}:3001/customerAddress`, address_data)
-                    .then(resp => {
-                        console.log("Status Code: ", resp.status);
-                        if (resp.status === 200) {
-                            console.log("Successful request for storing customer address");
-                            console.log(resp);
-                        } else {
-                            console.log("Unsuccessful request for storing customer address");
-                            console.log(resp)
-                        }
-                    })
                 } else{
                     console.log("Unsuccessful request");
                     console.log(response);
                 }
-            });
+        });
     }
     render(){
         console.log('RENDERING')
