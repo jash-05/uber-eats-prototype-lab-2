@@ -124,6 +124,25 @@ class RestaurantDetails extends Component{
             })
         }
     }
+    updateQuantityBeforeCheckout = async (e) => {
+        console.log('updating quantity before checkout')
+        let dish_ID = e.target.id
+        let change_in_quantity = 0
+        if (e.target.innerText === "+"){
+            change_in_quantity = 1
+        } else {
+            change_in_quantity = -1
+        }
+        const payload = {
+            restaurant_ID: this.state.restaurant_ID,
+            dish_ID: dish_ID,
+            change_in_quantity: change_in_quantity            
+        }
+        console.log(payload)
+        this.props.call_update_quantity(payload)
+        this.updateTotalAmount()
+        this.setState({})
+    }
     fetchRestaurantDetails = async () => {
         try {
             const response = await axios.get(`http://${server_IP}:3001/restaurants/${this.state.restaurant_ID}`);
@@ -187,13 +206,16 @@ class RestaurantDetails extends Component{
             console.error(err);
         }
     }
-    viewOrder = () => {
-        console.log("Inside view order function")
+    updateTotalAmount = () => {
         let total_order_amount = this.props.dishes.reduce((prev, next) => prev + next.quantity * next.price, 0);
         total_order_amount = Math.round(total_order_amount*100)/100
         this.props.call_update_total_amount({
             total_amount: total_order_amount
         })
+    }
+    viewOrder = () => {
+        console.log("Inside view order function")
+        this.updateTotalAmount();
         this.setState({
             showModal: !this.state.showModal
         })
@@ -233,8 +255,10 @@ class RestaurantDetails extends Component{
         const createOrderItemRow = row => {
             return (
                 <Row>
-                    <Col xs={1}> {row.quantity} </Col>
-                    <Col xs={9}> {row.dish_name} </Col>
+                    <Col xs={1}><Button id={row.dish_ID} onClick={this.updateQuantityBeforeCheckout} size="sm" variant="dark">-</Button></Col>
+                    <Col xs={1} className="my-1"> {row.quantity} </Col>
+                    <Col xs={1}><Button id={row.dish_ID} onClick={this.updateQuantityBeforeCheckout} size="sm" variant="dark">+</Button></Col>
+                    <Col xs={7}> {row.dish_name} </Col>
                     <Col xs={2}> {`$${Math.round(row.quantity * row.price * 100)/100}`} </Col>
                 </Row>
             )
