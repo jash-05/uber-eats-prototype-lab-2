@@ -9,5 +9,6 @@
 
 module.exports = {
   SERVER_IP: "localhost",
+  KAFKA_PORT: "9092",
   url: "mongodb+srv://root:root12345@cluster0.gmsya.mongodb.net/Demo?retryWrites=true&w=majority"
 }
