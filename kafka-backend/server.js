@@ -21,10 +21,10 @@ const createRestaurantAddress = require('./controllers/restaurant_address/create
 const findRestaurantAddress = require('./controllers/restaurant_address/findOne.js');
 const placeOrder = require('./controllers/order/placeOrder.js');
 const updateOrderStatus = require('./controllers/order/updateStatus.js');
-// const fetchCustomerOrders = require('./controllers/order/fetchOrdersForCustomer.js');
-// const fetchRestaurantOrders = require('./controllers/order/fetchOrdersForRestaurant.js');
-// const fetchCustomerOrderPageNumbers = require('./controllers/order/fetchpageNumbersForCustomerOrders.js');
-// const fetchRestaurantOrderPageNumbers = require('./controllers/order/fetchpageNumbersForRestaurantOrders.js');
+const fetchCustomerOrders = require('./controllers/order/fetchOrdersForCustomer.js');
+const fetchRestaurantOrders = require('./controllers/order/fetchOrdersForRestaurant.js');
+const fetchCustomerOrderPageNumbers = require('./controllers/order/fetchpageNumbersForCustomerOrders.js');
+const fetchRestaurantOrderPageNumbers = require('./controllers/order/fetchpageNumbersForRestaurantOrders.js');
 
 const db = require("./models/db.js");
 db.mongoose
@@ -92,7 +92,7 @@ handleTopicRequest("restaurant_addresses.create", createRestaurantAddress);
 handleTopicRequest("restaurant_addresses.findOne", findRestaurantAddress);
 handleTopicRequest("orders.placeOrder", placeOrder);
 handleTopicRequest("orders.updateStatus", updateOrderStatus);
-// handleTopicRequest("orders.fetchOrdersForCustomer", fetchCustomerOrders);
-// handleTopicRequest("orders.fetchOrdersForRestaurant", fetchRestaurantOrders);
-// handleTopicRequest("orders.fetchpageNumbersForCustomerOrders", fetchCustomerOrderPageNumbers);
-// handleTopicRequest("orders.fetchpageNumbersForRestaurantOrders", fetchRestaurantOrderPageNumbers);
+handleTopicRequest("orders.fetchOrdersForCustomer", fetchCustomerOrders);
+handleTopicRequest("orders.fetchOrdersForRestaurant", fetchRestaurantOrders);
+handleTopicRequest("orders.fetchpageNumbersForCustomerOrders", fetchCustomerOrderPageNumbers);
+handleTopicRequest("orders.fetchpageNumbersForRestaurantOrders", fetchRestaurantOrderPageNumbers);
