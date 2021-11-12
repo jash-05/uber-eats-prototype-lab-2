@@ -144,7 +144,6 @@ class RestaurantProfile extends Component{
                     opening_time: response.data.opening_time,
                     closing_time: response.data.closing_time
                 })
-                console.log('Cookie status: ', cookie.load('cookie'));
             } else{
                 console.log("Unsuccessful request");
                 console.log(response);
@@ -182,7 +181,6 @@ class RestaurantProfile extends Component{
                 this.setState({
                     fetchedDishes: dishesData
                 })
-                console.log('Cookie status: ', cookie.load('cookie'));
             } else{
                 console.log("Unsuccessful request");
                 console.log(response);
@@ -233,7 +231,6 @@ class RestaurantProfile extends Component{
                     fetchedOrders: response.data,
                     pageNumbers: page_numbers
                 })
-                console.log('Cookie status: ', cookie.load('cookie'));
             } else{
                 console.log("Unsuccessful request");
                 console.log(response);
@@ -373,7 +370,6 @@ class RestaurantProfile extends Component{
                 if(response.status === 200){
                     console.log("Successful request for storing restaurant info");
                     console.log(response);
-                    console.log('Cookie status: ', cookie.load('cookie'));
                     const address_data = {
                         restaurant_ID: this.state.restaurant_ID,
                         address_line_1: this.state.line1,

@@ -25,7 +25,7 @@ class RestaurantDetails extends Component{
         //maintain the state required for this component
         this.state = {
             restaurant_ID: props.match.params.restaurant_ID,
-            customer_ID: cookie.load('customer'),
+            customer_ID: localStorage.getItem('customer'),
             restaurant_name: "",
             short_address: "",
             cover_image: "",
@@ -47,7 +47,7 @@ class RestaurantDetails extends Component{
     }
     //Call the Will Mount to set the auth Flag to false
     componentDidMount(){
-        // if (!cookie.load('customer')){
+        // if (!localStorage.getItem('customer')){
         //     this.props.history.push(`/welcomeUser`)
         // }
         this.fetchRestaurantDetails();
@@ -57,7 +57,8 @@ class RestaurantDetails extends Component{
     checkIfFavourite = async () => {
         try {
             console.log('Fetching customer favourites')
-            const response = await axios.get(`http://${server_IP}:3001/favourites/${cookie.load('customer')}`);
+            axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
+            const response = await axios.get(`http://${server_IP}:3001/favourites/${localStorage.getItem('customer')}`);
             console.log(response.data);
             for (let i=0;i<response.data.length;i++){
                 if (response.data[i].restaurant_ID === parseInt(this.state.restaurant_ID)) {
@@ -82,11 +83,13 @@ class RestaurantDetails extends Component{
             console.log('adding to favourites')
             console.log(data)
             console.log('Sending request to add favourite restaurant')
+            axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
             const response = await axios.post(`http://${server_IP}:3001/favourites`, data)
             console.log(response.data);
         } else {
             console.log('removing from favourites')
             console.log('Sending request to delete favourite restaurant')
+            axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
             const response = await axios.delete(`http://${server_IP}:3001/favourites/${this.state.customer_ID}/${this.state.restaurant_ID}`)
             console.log(response.data)
         }
@@ -159,7 +162,6 @@ class RestaurantDetails extends Component{
                 })
                 this.setState({cover_image: response.data.cover_image});
                 this.setState({about: response.data.about});
-                console.log('Cookie status: ', cookie.load('cookie'));
                 console.log('Completed fetch restaurant details functions')
                 console.log(this.state)
             } else{
@@ -197,7 +199,6 @@ class RestaurantDetails extends Component{
                 this.setState({
                     fetchedDishes: dishesData
                 })
-                console.log('Cookie status: ', cookie.load('cookie'));
             } else{
                 console.log("Unsuccessful request");
                 console.log(response);
@@ -247,7 +248,7 @@ class RestaurantDetails extends Component{
     render(){
         console.log("Rendering");
         let redirectVar = null;
-        if (!cookie.load('customer')){
+        if (!localStorage.getItem('customer')){
             redirectVar = <Redirect to="/welcomeUser"/>
         }
         const createOrderItemRow = row => {

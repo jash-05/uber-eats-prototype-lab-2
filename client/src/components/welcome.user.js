@@ -61,7 +61,6 @@ class WelcomeUser extends Component{
                 if(response.status === 200){
                     console.log("Successful request");
                     console.log(response);
-                    console.log('Cookie status: ', cookie.load('cookie'));
                 } else{
                     console.log("Unsuccessful request");
                     console.log(response);

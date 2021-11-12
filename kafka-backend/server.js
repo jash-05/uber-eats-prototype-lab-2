@@ -30,7 +30,8 @@ const db = require("./models/db.js");
 db.mongoose
 .connect(db.url, {
     useNewUrlParser: true,
-    useUnifiedTopology: true
+    useUnifiedTopology: true,
+    maxPoolSize: 500
 })
 .then(() => {
     console.log("Connected to the database!");

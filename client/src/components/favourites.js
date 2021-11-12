@@ -33,12 +33,13 @@ class Favourites extends Component{
         this.fetchFavouriteRestaurants();
     }
     fetchFavouriteRestaurants = async () => {
-        if (!cookie.load('customer')){
+        if (!localStorage.getItem('customer')){
             return []
         }
         try {
             console.log('Fetching customer favourites')
-            const response = await axios.get(`http://${server_IP}:3001/favourites/${cookie.load('customer')}`);
+            axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
+            const response = await axios.get(`http://${server_IP}:3001/favourites/${localStorage.getItem('customer')}`);
             if (response.status===200){
                 console.log("Successful request");
                 console.log('Response')
@@ -68,11 +69,12 @@ class Favourites extends Component{
     favouritesHandler = async (e) => {
         let restaurants = []
         for(let i=0;i<this.state.favouriteRestaurants.length;i++){
-            if ((this.state.favouriteRestaurants[i].restaurant_ID === e.target.id) && (cookie.load('customer'))){
+            if ((this.state.favouriteRestaurants[i].restaurant_ID === e.target.id) && (localStorage.getItem('customer'))){
                 try {
                     axios.defaults.withCredentials = true;
                     console.log('Sending request to delete favourite restaurant')
-                    const response = await axios.delete(`http://${server_IP}:3001/favourites/${cookie.load('customer')}/${this.state.favouriteRestaurants[i].restaurant_ID}`)
+                    axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
+                    const response = await axios.delete(`http://${server_IP}:3001/favourites/${localStorage.getItem('customer')}/${this.state.favouriteRestaurants[i].restaurant_ID}`)
                     console.log(response.data)
                 } catch (err) {
                     console.error(err);
@@ -90,7 +92,7 @@ class Favourites extends Component{
         console.log("Rendering")
         console.log(this.state.filteredOrders)
         let redirectVar = null;
-        if (!cookie.load('customer')){
+        if (!localStorage.getItem('customer')){
             redirectVar = <Redirect to="/welcomeUser"/>
         }
         const createCard = card => {

@@ -87,7 +87,6 @@ class CustomerPublicProfile extends Component{
                     dob: response.data.dob,
                     nickname: response.data.nickname
                 })
-                console.log('Cookie status: ', cookie.load('cookie'));
             } else{
                 console.log("Unsuccessful request");
                 console.log(response);

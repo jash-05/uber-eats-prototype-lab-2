@@ -1,3 +1,5 @@
+const { checkAuth } = require("../passport/passport");
+
 module.exports = app => {
     const customers = require("../controllers/customer.controller.js");
   
@@ -14,7 +16,7 @@ module.exports = app => {
     app.get("/customers/:customerId", customers.findOne);
   
     // Update a Customer with customerId
-    app.put("/customers/:customerId", customers.update);
+    app.put("/customers/:customerId", checkAuth, customers.update);
   
     // // Delete a Customer with customerId
     // app.delete("/customers/:customerId", customers.delete);

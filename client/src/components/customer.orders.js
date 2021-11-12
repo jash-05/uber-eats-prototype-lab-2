@@ -29,7 +29,7 @@ class CustomerOrders extends Component{
         super(props);
         //maintain the state required for this component
         this.state = {
-            customer_ID: cookie.load('customer'),
+            customer_ID: localStorage.getItem('customer'),
             showModal: false,
             fetchedOrders: [],
             selectedOrderFilter: "all",
@@ -48,13 +48,14 @@ class CustomerOrders extends Component{
         try {
             console.log('Fetching orders')
             const data = {
-                customer_ID: cookie.load('customer'),
+                customer_ID: localStorage.getItem('customer'),
                 filter: filter,
                 toSkip: (pageNumber - 1) * paginationLimit,
                 limit: parseInt(paginationLimit)
             }
             console.log("Sending request to fetch orders with the following params: ")
             console.log(data)
+            axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
             const response = await axios.get(`http://${server_IP}:3001/fetchOrdersForCustomer`, {params: data})
             console.log("Status Code : ",response.status);
             if(response.status === 200){
@@ -67,6 +68,7 @@ class CustomerOrders extends Component{
                         filter: filter,
                         limit: parseInt(paginationLimit)
                     }
+                    axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
                     const res = await axios.get(`http://${server_IP}:3001/fetchPageNumbersForCustomerOrders`, {params: payload})
                     console.log("Successful request of fetching page numbers")
                     console.log(res.data)
@@ -83,7 +85,6 @@ class CustomerOrders extends Component{
                     fetchedOrders: response.data,
                     pageNumbers: page_numbers
                 })
-                console.log('Cookie status: ', cookie.load('cookie'));
             } else{
                 console.log("Unsuccessful request");
                 console.log(response);
@@ -150,7 +151,7 @@ class CustomerOrders extends Component{
         console.log("Rendering")
         console.log(this.state.fetchedOrders)
         let redirectVar = null;
-        if (!cookie.load('customer')){
+        if (!localStorage.getItem('customer')){
             redirectVar = <Redirect to="/welcomeUser"/>
         }
         const capitalizeFirstLetter = text => {

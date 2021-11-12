@@ -1,6 +1,10 @@
 const kafka = require('../kafka/client');
 const db = require("../models/db");
 const Customer = db.customers;
+const jwt = require('jsonwebtoken');
+const secret = "cmpe_273_secret";
+const { auth } = require("../passport/passport");
+auth();
 
 exports.create = (req, res) => {
   if (!req.body) {
@@ -14,12 +18,21 @@ exports.create = (req, res) => {
         message: "Some error occured while creating the customer"
       })
     } else {
-      req.session.user = {
-        user_type: "customer",
-        id: data.customer_ID
+      const payload = { customer_ID: data.customer_ID};
+      const token = jwt.sign(payload, secret, {
+          expiresIn: 1008000
+      });
+      const obj = {
+        token: "JWT " + token,
+        customer_ID: data.customer_ID
       }
-      res.cookie('customer', data.customer_ID, {maxAge: 9000000, httpOnly: false, path : '/'});
-      res.send(data);
+      res.status(200).send(obj);
+      // req.session.user = {
+      //   user_type: "customer",
+      //   id: data.customer_ID
+      // }
+      // res.cookie('customer', data.customer_ID, {maxAge: 9000000, httpOnly: false, path : '/'});
+      // res.send(data);
     }
   })
 };
@@ -48,12 +61,21 @@ exports.authenticate = (req, res) => {
           if (!data)
             res.status(404).send({ message: "Not found customer with email " + req.body.email_id });
           else {
-            req.session.user = {
-                user_type: "customer",
-                id: data.customer_ID
+            const payload = { customer_ID: data.customer_ID};
+            const token = jwt.sign(payload, secret, {
+                expiresIn: 1008000
+            });
+            const obj = {
+              token: "JWT " + token,
+              customer_ID: data.customer_ID
             }
-            res.cookie('customer',data.customer_ID,{maxAge: 9000000, httpOnly: false, path : '/'});
-            res.send(data);
+            res.status(200).send(obj);
+            // req.session.user = {
+            //   user_type: "customer",
+            //   id: data.customer_ID
+            // }
+            // res.cookie('customer', data.customer_ID, {maxAge: 9000000, httpOnly: false, path : '/'});
+            // res.send(data);
           }
     }
   })

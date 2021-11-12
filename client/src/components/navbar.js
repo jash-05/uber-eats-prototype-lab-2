@@ -40,9 +40,9 @@ class DashboardNavbar extends Component{
         this.fetchCustomerDetails();
     }
     fetchCustomerDetails = async () => {
-        if (cookie.load('customer')) {
+        if (localStorage.getItem('customer')) {
             try {
-                const response = await axios.get(`http://${server_IP}:3001/customers/${cookie.load('customer')}`);
+                const response = await axios.get(`http://${server_IP}:3001/customers/${localStorage.getItem('customer')}`);
                 console.log(response.data)
                 this.setState({
                     profile_picture: response.data.profile_picture,
@@ -65,10 +65,10 @@ class DashboardNavbar extends Component{
         window.location.reload(false);
     } 
     handleLogout = () => {
-        console.log(cookie.load('customer'))
-        console.log('Removing customer cookie')
-        cookie.remove('customer');
-        console.log(cookie.load('customer'))
+        console.log(localStorage.getItem('customer'))
+        console.log('Removing customer JWT from local storage')
+        localStorage.clear();
+        console.log(localStorage.getItem('customer'))
         window.location.reload(false);
     }
     render(){
@@ -129,7 +129,7 @@ class DashboardNavbar extends Component{
                             {/* <Button variant="outline-success">Search</Button> */}
                         </Form>
                         {(
-                            cookie.load('customer')
+                            localStorage.getItem('customer')
                             ? <Button variant="dark" size="md" onClick={this.handleLogout}>Logout</Button>
                             : <Link to="/welcomeUser"><Button variant="dark" size="md">Login</Button></Link>
                         )}

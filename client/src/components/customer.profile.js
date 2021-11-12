@@ -73,9 +73,9 @@ class CustomerProfile extends Component{
         this.fetchCustomerDetails();
     }
     setCustomerState = async () => {
-        if (cookie.load('customer')) {
+        if (localStorage.getItem('customer')) {
             this.setState({
-                customer_ID: cookie.load('customer')
+                customer_ID: localStorage.getItem('customer')
             })
         }
     }
@@ -106,7 +106,6 @@ class CustomerProfile extends Component{
                     dob: response.data.dob,
                     nickname: response.data.nickname
                 })
-                console.log('Cookie status: ', cookie.load('cookie'));
             } else{
                 console.log("Unsuccessful request");
                 console.log(response);
@@ -210,13 +209,13 @@ class CustomerProfile extends Component{
         //set the with credentials to true
         axios.defaults.withCredentials = true;
         // make a post request with the user data
+        axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
         axios.put(`http://${server_IP}:3001/customers/${this.state.customer_ID}`,customer_data)
             .then(response => {
                 console.log("Status Code : ",response.status);
                 if(response.status === 200){
                     console.log("Successful request for storing restaurant info");
                     console.log(response);
-                    console.log('Cookie status: ', cookie.load('cookie'));
                     const address_data = {
                         customer_ID: this.state.customer_ID,
                         line1: this.state.line1,
@@ -225,6 +224,7 @@ class CustomerProfile extends Component{
                         state_name: this.state.state_name,
                         zipcode: this.state.zipcode
                     }
+                    axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
                     axios.put(`http://${server_IP}:3001/customerAddress`, address_data)
                     .then(resp => {
                         console.log("Status Code: ", resp.status);
@@ -246,7 +246,7 @@ class CustomerProfile extends Component{
     render(){
         console.log("Rendering")
         let redirectVar = null;
-        if (!cookie.load('customer')){
+        if (!localStorage.getItem('customer')){
             redirectVar = <Redirect to="/welcomeUser"/>
         }
         return(

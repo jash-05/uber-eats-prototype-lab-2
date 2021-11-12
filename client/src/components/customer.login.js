@@ -37,7 +37,6 @@ class CustomerLogin extends Component{
         this.setState({
             authFlag : false
         })
-        console.log('Cookie status: ', cookie.load('cookie'));
     }
     emailChangeHandler = (e) => {
         this.setState({
@@ -69,7 +68,8 @@ class CustomerLogin extends Component{
                 if(response.status === 200){
                     console.log("Successful request");
                     console.log(response);
-                    console.log('Cookie status: ', cookie.load('cookie'));
+                    localStorage.setItem("token", response.data.token)
+                    localStorage.setItem("customer", response.data.customer_ID)
                     this.setState({
                         authFlag : true
                     })
@@ -82,7 +82,7 @@ class CustomerLogin extends Component{
     render(){
         console.log('RENDERING')
         let redirectVar = null;
-        if(cookie.load('customer')){
+        if(localStorage.getItem('token')){
             redirectVar = <Redirect to= "/dashboard"/>
         }
         return(

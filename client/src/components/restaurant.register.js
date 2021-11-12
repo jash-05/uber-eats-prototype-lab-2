@@ -215,7 +215,6 @@ class RestaurantRegister extends Component{
                 if(response.status === 200){
                     console.log("Successful request for storing restaurant info");
                     console.log(response);
-                    console.log('Cookie status: ', cookie.load('cookie'));
                     const address_data = {
                         restaurant_ID: response.data.restaurant_ID,
                         address_line_1: this.state.address_line_1,
