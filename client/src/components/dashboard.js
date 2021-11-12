@@ -213,7 +213,7 @@ class Dashboard extends Component{
                         'restaurant_ID': response.data[i].restaurant_ID,
                         'restaurant_name': response.data[i].restaurant_name,
                         'cover_image': response.data[i].cover_image,
-                        'city': response.data[i].city,
+                        'city': response.data[i].address.city,
                         'favourite': favourite_restaurants.includes(response.data[i].restaurant_ID),
                         'vegetarian': response.data[i].vegetarian,
                         'non_vegetarian': response.data[i].non_vegetarian,
@@ -249,11 +249,11 @@ class Dashboard extends Component{
                         console.log(data)
                         console.log('Sending request to add favourite restaurant')
                         axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
-                        axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
                         const response = await axios.post(`http://${server_IP}:3001/favourites`, data)
                         console.log(response.data);
                     } else {
                         console.log('Sending request to delete favourite restaurant')
+                        axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
                         const response = await axios.delete(`http://${server_IP}:3001/favourites/${localStorage.getItem('customer')}/${this.state.fetchedRestaurants[i].restaurant_ID}`)
                         console.log(response.data)
                     }
