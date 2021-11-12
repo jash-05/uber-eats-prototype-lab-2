@@ -182,6 +182,7 @@ class CheckoutOrder extends Component{
                 console.log("Successful request");
                 console.log(response.data)
                 this.props.history.push('/dashboard')
+                window.location.reload(false);
             } else {
                 console.log("Unsuccessful request");
                 console.log(response);

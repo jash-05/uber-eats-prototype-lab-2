@@ -15,6 +15,8 @@ module.exports = app => {
 
     app.get("/fetchPageNumbersForRestaurantOrders", orders.fetchPageNumbersForRestaurantOrders);
 
+    app.get("/fetchPageNumbersForCustomerOrders", orders.fetchPageNumbersForCustomerOrders);
+
     //Add API : page numbers for customer orders
     
     app.post('/placeOrder', orders.placeOrder);

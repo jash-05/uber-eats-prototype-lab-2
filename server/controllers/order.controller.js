@@ -97,17 +97,48 @@ exports.fetchPageNumbersForRestaurantOrders = async (req, res) => {
 };
 
 exports.fetchOrdersForCustomer = (req, res) => {
-    Order.find({"customer_info.customer_ID": req.query.customer_ID})
-      .then(data => {
-        res.send(data);
-      })
-      .catch(err => {
-        res.status(500).send({
-          message:
-            err.message || "Some error occurred while retrieving customer."
-        });
+  console.log(req.query)
+  let condition = {
+    "customer_info.customer_ID": req.query.customer_ID
+  }
+  if (req.query.filter !== "all") {
+    condition['order_status'] = req.query.filter
+  }
+  Order.find(condition)
+    .skip(parseInt(req.query.toSkip))
+    .limit(parseInt(req.query.limit))
+    .then(data => {
+      res.send(data);
+    })
+    .catch(err => {
+      res.status(500).send({
+        message:
+          err.message || "Some error occurred while retrieving customer."
       });
-  };
+    });
+};
+
+exports.fetchPageNumbersForCustomerOrders = async (req, res) => {
+console.log(req.query)
+let condition = {
+  "customer_info.customer_ID": req.query.customer_ID
+}
+if (req.query.filter !== "all") {
+  condition['order_status'] = req.query.filter
+}
+Order.find(condition)
+  .then(data => {
+    res.send({
+      'numberOfPages': Math.ceil(data.length / req.query.limit)
+    })
+  })
+  .catch(err => {
+    res.status(500).send({
+      message:
+        err.message || "Some error occurred while retrieving customer."
+    });
+  });
+};
 
 // const e = require("express");
 // const Order = require("../models/order.model.js");

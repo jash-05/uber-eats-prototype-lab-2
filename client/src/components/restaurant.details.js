@@ -148,7 +148,7 @@ class RestaurantDetails extends Component{
             const response = await axios.get(`http://${server_IP}:3001/restaurants/${this.state.restaurant_ID}`);
             console.log("Status Code : ",response.status);
             if(response.status === 200){
-                console.log("Successful request");
+                console.log("Successful request for fetching restaurant details");
                 console.log(response.data);
                 this.setState({restaurant_name: response.data.restaurant_name});
                 this.setState({
@@ -246,8 +246,6 @@ class RestaurantDetails extends Component{
     }
     render(){
         console.log("Rendering");
-        console.log(this.props)
-        console.log(this.state)
         let redirectVar = null;
         if (!cookie.load('customer')){
             redirectVar = <Redirect to="/welcomeUser"/>

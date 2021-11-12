@@ -58,7 +58,7 @@ class RestaurantProfile extends Component{
             const_about: "",
             opening_time: "",
             closing_time: "",
-            full_adress: "",
+            full_address: "",
             fetchedDishes: [],
             cover_image_file: "",
             showModal: false,
@@ -376,13 +376,13 @@ class RestaurantProfile extends Component{
                     console.log('Cookie status: ', cookie.load('cookie'));
                     const address_data = {
                         restaurant_ID: this.state.restaurant_ID,
-                        line1: this.state.line1,
-                        line2: this.state.line2,
+                        address_line_1: this.state.line1,
+                        address_line_2: this.state.line2,
                         city: this.state.city,
-                        state_name: this.state.state_name,
-                        zipcode: this.state.zipcode
+                        state: this.state.state_name,
+                        zip: this.state.zipcode
                     }
-                    axios.put(`http://${server_IP}:3001/restaurantAddress`, address_data)
+                    axios.post(`http://${server_IP}:3001/restaurantAddress`, address_data)
                     .then(resp => {
                         console.log("Status Code: ", resp.status);
                         if (resp.status === 200) {
@@ -482,7 +482,7 @@ class RestaurantProfile extends Component{
         })
     }
     orderStatusChangeHandler = async (e) => {
-        if (["placed", "delivered", "cancelled"].includes(e.target.name)) {
+        if (["placed", "preparing","delivered", "cancelled"].includes(e.target.name)) {
             try {
                 const data = {
                     order_ID: e.target.id,
@@ -586,7 +586,7 @@ class RestaurantProfile extends Component{
                     <Card.Header>
                         <Row className="p-1">
                         <Col xs={7}>
-                            Status: <strong>{capitalizeFirstLetter(((row.order_status==="placed") ? "New Order" : (row.order_status==="cancelled" ? "Preparing" : row.order_status)))}</strong>
+                            Status: <strong>{capitalizeFirstLetter(((row.order_status==="placed") ? "New Order" : row.order_status))}</strong>
                         </Col>
                         <Col xs={3}>
                             Order #{row.order_ID.slice(0,3).toUpperCase()}
@@ -601,7 +601,7 @@ class RestaurantProfile extends Component{
                             <Card.Title className="text-dark">{`${row.customer_info.first_name} ${row.customer_info.last_name}`}</Card.Title>
                         </Link>
                         <Card.Text>
-                            {`${row.customer_info.line1} ${row.customer_info.line2}, ${row.customer_info.city}, ${row.customer_info.state_name} ${row.customer_info.zipcode}`}
+                            {`${row.customer_info.address.line1} ${row.customer_info.address.line2}, ${row.customer_info.address.city}, ${row.customer_info.address.state_name} ${row.customer_info.address.zipcode}`}
                         </Card.Text>
                         <Accordion className="my-3">
                         <Accordion.Item eventKey="0">
@@ -617,6 +617,9 @@ class RestaurantProfile extends Component{
                             </Accordion.Body>
                         </Accordion.Item>
                         </Accordion>
+                        <Row className="my-3 mx-2">
+                            Special instructions: {row.specialInstructions}
+                        </Row>
                         <Row>
                             <Col xs={4}>
                                 {/* <Button variant="dark" value="5" onClick={this.orderStatusChangeHandler}>Update order status</Button> */}
@@ -628,8 +631,9 @@ class RestaurantProfile extends Component{
                                     onClick={this.orderStatusChangeHandler}
                                 >   
                                     <Dropdown.Item name="placed" id={row.order_ID}>New Order</Dropdown.Item>
+                                    <Dropdown.Item name="preparing" id={row.order_ID}>Preparing</Dropdown.Item>
                                     <Dropdown.Item name="delivered" id={row.order_ID}>Delivered</Dropdown.Item>
-                                    <Dropdown.Item name="cancelled" id={row.order_ID}>Preparing</Dropdown.Item>
+                                    <Dropdown.Item name="cancelled" id={row.order_ID}>Cancelled</Dropdown.Item>
                                 </DropdownButton>
                             </Col>
                             <Col xs={4}>
@@ -883,8 +887,9 @@ class RestaurantProfile extends Component{
                                         <Form.Select onChange={this.selectedOrderFilterChangeHandler}>
                                             <option value="all">All orders</option>
                                             <option value="placed">New orders</option>
+                                            <option value="preparing">Preparing orders</option>
                                             <option value="delivered">Delivered orders</option>
-                                            <option value="cancelled">Preparing orders</option>
+                                            <option value="cancelled">Cancelled orders</option>
                                         </Form.Select>
                                     </Col>
                                     <Col xs={1}></Col>
