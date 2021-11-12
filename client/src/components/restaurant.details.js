@@ -307,16 +307,11 @@ class RestaurantDetails extends Component{
                         </Col>
                     </Row>
                     <Row className="my-4 mx-5">
-                        <Col xs={10} className="display-6">
+                        <Col xs={11} className="display-6">
                         {`${this.state.restaurant_name} (${this.state.short_address})`}
                         </Col>
                         <Col xs={1} className="">
                             <i className={this.state.isFavourite ? "heart fa fa-heart fa-2x" : "heart fa fa-heart-o fa-2x"} onClick={this.favouritesHandler} style={{color:"red"}}></i>
-                        </Col>
-                        <Col xs={1} className="">
-                            <Button variant="dark" onClick={this.viewOrder}>
-                                View Cart
-                            </Button>
                         </Col>
                     </Row>
                     <Row className="lead mx-5 px-3">
