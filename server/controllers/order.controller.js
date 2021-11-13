@@ -54,60 +54,59 @@ exports.updateStatus = (req, res) => {
 
 exports.fetchOrdersForRestaurant = (req, res) => {
     console.log(req.query)
-    let condition = {
-      "restaurant_info.restaurant_ID": req.query.restaurant_ID
-    }
-    if (req.query.filter !== "all") {
-      condition['order_status'] = req.query.filter
-    }
-    Order.find(condition)
-      .skip(parseInt(req.query.toSkip))
-      .limit(parseInt(req.query.limit))
-      .then(data => {
-        res.send(data);
-      })
-      .catch(err => {
+    kafka.make_request('orders.fetchOrdersForRestaurant', req.query, function(err, data){
+      console.log(data);
+      if (err) {
         res.status(500).send({
-          message:
-            err.message || "Some error occurred while retrieving customer."
-        });
-      });
-  };
+          message: "Some error occured while creating the customer"
+        })
+      } else {
+        res.send(data);
+      }
+    })
+};
 
 exports.fetchPageNumbersForRestaurantOrders = async (req, res) => {
   console.log(req.query)
-  let condition = {
-    "restaurant_info.restaurant_ID": req.query.restaurant_ID
-  }
-  if (req.query.filter !== "all") {
-    condition['order_status'] = req.query.filter
-  }
-  Order.find(condition)
-    .then(data => {
-      res.send({
-        'numberOfPages': Math.ceil(data.length / req.query.limit)
-      })
-    })
-    .catch(err => {
+  kafka.make_request('orders.fetchpageNumbersForRestaurantOrders', req.query, function(err, data){
+    console.log(data);
+    if (err) {
       res.status(500).send({
-        message:
-          err.message || "Some error occurred while retrieving customer."
-      });
-    });
+        message: "Some error occured while creating the customer"
+      })
+    } else {
+      res.send(data);
+    }
+  })
 };
 
 exports.fetchOrdersForCustomer = (req, res) => {
-    Order.find({"customer_info.customer_ID": req.query.customer_ID})
-      .then(data => {
-        res.send(data);
+  console.log(req.query)
+  kafka.make_request('orders.fetchOrdersForCustomer', req.query, function(err, data){
+    console.log(data);
+    if (err) {
+      res.status(500).send({
+        message: "Some error occured while creating the customer"
       })
-      .catch(err => {
-        res.status(500).send({
-          message:
-            err.message || "Some error occurred while retrieving customer."
-        });
-      });
-  };
+    } else {
+      res.send(data);
+    }
+  })
+};
+
+exports.fetchPageNumbersForCustomerOrders = async (req, res) => {
+  console.log(req.query)
+  kafka.make_request('orders.fetchpageNumbersForCustomerOrders', req.query, function(err, data){
+    console.log(data);
+    if (err) {
+      res.status(500).send({
+        message: "Some error occured while creating the customer"
+      })
+    } else {
+      res.send(data);
+    }
+  })
+};
 
 // const e = require("express");
 // const Order = require("../models/order.model.js");

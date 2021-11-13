@@ -25,6 +25,7 @@ class Dashboard extends Component{
         //maintain the state required for this component
         this.state = {
             fetchedRestaurants: [],
+            filteredRestaurants: [],
             location: "",
             vegetarian: false,
             non_vegetarian: false,
@@ -71,6 +72,24 @@ class Dashboard extends Component{
             console.error(err);
         }
     }
+    filterRestaurants = (data, fetchedRestaurants=this.state.fetchedRestaurants) => {
+        console.log('Filtering restaurants with the following filters: ')
+        let filteredRestaurants = []
+        for (let i=0; i<fetchedRestaurants.length; i++) {
+            const r = fetchedRestaurants[i]
+            if (!(data.vegetarian || data.non_vegetarian || data.vegan)) {
+                if ((data.delivery && r.delivery) || (data.pickup && r.pickup)) {
+                    filteredRestaurants.push(r)
+                }
+            }
+            else if ((data.vegetarian && r.vegetarian) || (data.non_vegetarian && r.non_vegetarian) || (data.vegan && r.vegan)) {
+                if ((data.delivery && r.delivery) || (data.pickup && r.pickup)) {
+                    filteredRestaurants.push(r)
+                }
+            }
+        }
+        return filteredRestaurants
+    }
     vegetarianChangeHandler = async (e) => {
         const data  = {
             vegetarian: !this.state.vegetarian,
@@ -80,9 +99,10 @@ class Dashboard extends Component{
             pickup: this.state.pickup
         }
         try {
-            await this.fetchRestaurants(data);
+            const filteredRestaurants = this.filterRestaurants(data)
             this.setState({
-                vegetarian: !this.state.vegetarian
+                vegetarian: !this.state.vegetarian,
+                filteredRestaurants: filteredRestaurants
             })
         } catch(err) {
             console.error(err);
@@ -97,9 +117,10 @@ class Dashboard extends Component{
             pickup: this.state.pickup
         }
         try {
-            await this.fetchRestaurants(data);
+            const filteredRestaurants = this.filterRestaurants(data)
             this.setState({
-                non_vegetarian: !this.state.non_vegetarian
+                non_vegetarian: !this.state.non_vegetarian,
+                filteredRestaurants: filteredRestaurants
             })
         } catch(err) {
             console.error(err);
@@ -114,9 +135,10 @@ class Dashboard extends Component{
             pickup: this.state.pickup
         }
         try {
-            await this.fetchRestaurants(data);
+            const filteredRestaurants = this.filterRestaurants(data)
             this.setState({
-                vegan: !this.state.vegan
+                vegan: !this.state.vegan,
+                filteredRestaurants: filteredRestaurants
             })
         } catch(err) {
             console.error(err);
@@ -131,10 +153,11 @@ class Dashboard extends Component{
             pickup: !e
         }
         try {
-            await this.fetchRestaurants(data);
+            const filteredRestaurants = this.filterRestaurants(data)
             this.setState({
                 delivery: e,
-                pickup: !e
+                pickup: !e,
+                filteredRestaurants: filteredRestaurants
             })
         } catch(err) {
             console.error(err);
@@ -155,6 +178,7 @@ class Dashboard extends Component{
     getFavouritesForCustomer = async (customer_ID) => {
         try {
             console.log('Fetching customer favourites')
+            axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
             const response = await axios.get(`http://${server_IP}:3001/favourites/${customer_ID}`);
             console.log(response.data);
             let favourite_restaurants = []
@@ -167,38 +191,42 @@ class Dashboard extends Component{
             return []
         }
     }
-    fetchRestaurants = async (data) => {
-        if (cookie.load('customer') && !(this.state.city)) {
-            await this.getCityFromCustomerID(cookie.load('customer'))
+    fetchRestaurants = async () => {
+        if (localStorage.getItem('customer') && !(this.state.city)) {
+            await this.getCityFromCustomerID(localStorage.getItem('customer'))
         }
         let favourite_restaurants = [];
-        if (cookie.load('customer')){
-            favourite_restaurants = await this.getFavouritesForCustomer(cookie.load('customer'))
+        if (localStorage.getItem('customer')){
+            favourite_restaurants = await this.getFavouritesForCustomer(localStorage.getItem('customer'))
         }
         console.log(favourite_restaurants)
         let restaurantData = []
         try {
-            let payload = {...data, city: this.state.city, customer_ID: cookie.load('customer')}
+            let payload = {city: this.state.city, customer_ID: localStorage.getItem('customer')}
             const response = await axios.get(`http://${server_IP}:3001/restaurants`, {params: payload})
             console.log("Status Code : ",response.status);
             if(response.status === 200){
-                console.log("Successful request");
-                console.log('Response')
+                console.log("Successful request for fetching restaurants");
                 console.log(response.data);
                 for (let i=0;i < response.data.length; i++){
                     restaurantData.push({
                         'restaurant_ID': response.data[i].restaurant_ID,
                         'restaurant_name': response.data[i].restaurant_name,
                         'cover_image': response.data[i].cover_image,
-                        'city': response.data[i].city,
-                        'favourite': favourite_restaurants.includes(response.data[i].restaurant_ID)
+                        'city': response.data[i].address.city,
+                        'favourite': favourite_restaurants.includes(response.data[i].restaurant_ID),
+                        'vegetarian': response.data[i].vegetarian,
+                        'non_vegetarian': response.data[i].non_vegetarian,
+                        'vegan': response.data[i].vegan,
+                        'delivery': response.data[i].delivery,
+                        'pickup': response.data[i].pickup
                     });
                     console.log(restaurantData)
                 }
                 this.setState({
-                    fetchedRestaurants: restaurantData
+                    fetchedRestaurants: restaurantData,
+                    filteredRestaurants: restaurantData
                 })
-                console.log('Cookie status: ', cookie.load('cookie'));
             } else{
                 console.log("Unsuccessful request");
                 console.log(response);
@@ -210,21 +238,23 @@ class Dashboard extends Component{
     favouritesHandler = async (e) => {
         let restaurants = []
         for(let i=0;i<this.state.fetchedRestaurants.length;i++){
-            if ((this.state.fetchedRestaurants[i].restaurant_ID === e.target.id) && (cookie.load('customer'))){
+            if ((this.state.fetchedRestaurants[i].restaurant_ID === e.target.id) && (localStorage.getItem('customer'))){
                 try {
                     axios.defaults.withCredentials = true;
                     if (!this.state.fetchedRestaurants[i].favourite){
                         let data = {
-                            customer_ID: cookie.load('customer'),
+                            customer_ID: localStorage.getItem('customer'),
                             restaurant_ID: this.state.fetchedRestaurants[i].restaurant_ID
                         }
                         console.log(data)
                         console.log('Sending request to add favourite restaurant')
+                        axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
                         const response = await axios.post(`http://${server_IP}:3001/favourites`, data)
                         console.log(response.data);
                     } else {
                         console.log('Sending request to delete favourite restaurant')
-                        const response = await axios.delete(`http://${server_IP}:3001/favourites/${cookie.load('customer')}/${this.state.fetchedRestaurants[i].restaurant_ID}`)
+                        axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
+                        const response = await axios.delete(`http://${server_IP}:3001/favourites/${localStorage.getItem('customer')}/${this.state.fetchedRestaurants[i].restaurant_ID}`)
                         console.log(response.data)
                     }
                     restaurants.push({...this.state.fetchedRestaurants[i], favourite: !this.state.fetchedRestaurants[i].favourite})
@@ -235,10 +265,18 @@ class Dashboard extends Component{
                 restaurants.push(this.state.fetchedRestaurants[i])
             }
         }
+        const filters  = {
+            vegetarian: this.state.vegetarian,
+            non_vegetarian: this.state.non_vegetarian,
+            vegan: this.state.vegan,
+            delivery: this.state.delivery,
+            pickup: this.state.pickup
+        }
+        const filteredRestaurants = this.filterRestaurants(filters, restaurants)
         this.setState({
-            fetchedRestaurants: restaurants
+            fetchedRestaurants: restaurants,
+            filteredRestaurants: filteredRestaurants
         })
-        console.log(restaurants)
     }
     render(){
         sessionStorage.setItem("order_type", (this.state.delivery ? "delivery" : "pickup"));
@@ -321,7 +359,7 @@ class Dashboard extends Component{
                                 {(this.state.city ? `Higher preference given to restaurants of ${this.state.city}` : "")}
                           </Row>
                           <Row>
-                          {this.state.fetchedRestaurants.map(createCard)}
+                          {this.state.filteredRestaurants.map(createCard)}
                           </Row>
                       </Container>
                     </Col>

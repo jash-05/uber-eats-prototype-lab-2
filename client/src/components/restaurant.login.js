@@ -34,7 +34,6 @@ class RestaurantLogin extends Component{
         this.setState({
             authFlag : false
         })
-        console.log('Cookie status: ', cookie.load('cookie'));
     }
     emailChangeHandler = (e) => {
         this.setState({
@@ -66,7 +65,6 @@ class RestaurantLogin extends Component{
                 if(response.status === 200){
                     console.log("Successful request");
                     console.log(response);
-                    console.log('Cookie status: ', cookie.load('cookie'));
                     this.setState({
                         authFlag : true
                     })

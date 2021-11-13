@@ -70,7 +70,6 @@ class EditDish extends Component{
                     category_ID: response.data.category_ID,
                     dish_image: response.data.dish_image
                 })
-                console.log('Cookie status: ', cookie.load('cookie'));
             } else{
                 console.log("Unsuccessful request");
                 console.log(response);
@@ -141,7 +140,6 @@ class EditDish extends Component{
                 if(response.status === 200){
                     console.log("Successful request for storing restaurant info");
                     console.log(response);
-                    console.log('Cookie status: ', cookie.load('cookie'));
                 } else{
                     console.log("Unsuccessful request for storing customer info");
                     console.log(response);

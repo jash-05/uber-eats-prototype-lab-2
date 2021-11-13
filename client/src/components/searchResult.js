@@ -48,6 +48,7 @@ class SearchResults extends Component{
     getFavouritesForCustomer = async (customer_ID) => {
         try {
             console.log('Fetching customer favourites')
+            axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
             const response = await axios.get(`http://${server_IP}:3001/favourites/${customer_ID}`);
             console.log(response.data);
             let favourite_restaurants = []
@@ -61,12 +62,12 @@ class SearchResults extends Component{
         }
     }
     fetchSearchResults = async () => {
-        if (cookie.load('customer') && !(this.state.city)) {
-            await this.getCityFromCustomerID(cookie.load('customer'))
+        if (localStorage.getItem('customer') && !(this.state.city)) {
+            await this.getCityFromCustomerID(localStorage.getItem('customer'))
         }
         let favourite_restaurants = [];
-        if (cookie.load('customer')){
-            favourite_restaurants = await this.getFavouritesForCustomer(cookie.load('customer'))
+        if (localStorage.getItem('customer')){
+            favourite_restaurants = await this.getFavouritesForCustomer(localStorage.getItem('customer'))
         }
         console.log(favourite_restaurants)
         console.log(this.props.match.params.searchQuery)
@@ -92,7 +93,6 @@ class SearchResults extends Component{
                 this.setState({
                     fetchedRestaurants: restaurantData
                 })
-                console.log('Cookie status: ', cookie.load('cookie'));
             } else{
                 console.log("Unsuccessful request");
                 console.log(response);
@@ -104,21 +104,23 @@ class SearchResults extends Component{
     favouritesHandler = async (e) => {
         let restaurants = []
         for(let i=0;i<this.state.fetchedRestaurants.length;i++){
-            if ((this.state.fetchedRestaurants[i].restaurant_ID === parseInt(e.target.id)) && (cookie.load('customer'))){
+            if ((this.state.fetchedRestaurants[i].restaurant_ID === parseInt(e.target.id)) && (localStorage.getItem('customer'))){
                 try {
                     axios.defaults.withCredentials = true;
                     if (!this.state.fetchedRestaurants[i].favourite){
                         let data = {
-                            customer_ID: cookie.load('customer'),
+                            customer_ID: localStorage.getItem('customer'),
                             restaurant_ID: this.state.fetchedRestaurants[i].restaurant_ID
                         }
                         console.log(data)
                         console.log('Sending request to add favourite restaurant')
+                        axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
                         const response = await axios.post(`http://${server_IP}:3001/favourites`, data)
                         console.log(response.data);                        
                     } else {
                         console.log('Sending request to delete favourite restaurant')
-                        const response = await axios.delete(`http://${server_IP}:3001/favourites/${cookie.load('customer')}/${this.state.fetchedRestaurants[i].restaurant_ID}`)
+                        axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
+                        const response = await axios.delete(`http://${server_IP}:3001/favourites/${localStorage.getItem('customer')}/${this.state.fetchedRestaurants[i].restaurant_ID}`)
                         console.log(response.data)
                     }
                     restaurants.push({...this.state.fetchedRestaurants[i], favourite: !this.state.fetchedRestaurants[i].favourite})

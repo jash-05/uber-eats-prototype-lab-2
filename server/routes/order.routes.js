@@ -1,3 +1,5 @@
+const { checkAuth } = require("../passport/passport.js");
+
 module.exports = app => {
     const orders = require("../controllers/order.controller.js");
 
@@ -9,15 +11,17 @@ module.exports = app => {
 
     // app.delete("/deleteInCartOrder/:customer_ID", orders.deleteInCartOrder);
 
-    app.get("/fetchOrdersForCustomer", orders.fetchOrdersForCustomer);
+    app.get("/fetchOrdersForCustomer", checkAuth, orders.fetchOrdersForCustomer);
 
     app.get("/fetchOrdersForRestaurant", orders.fetchOrdersForRestaurant);
 
     app.get("/fetchPageNumbersForRestaurantOrders", orders.fetchPageNumbersForRestaurantOrders);
 
+    app.get("/fetchPageNumbersForCustomerOrders", checkAuth, orders.fetchPageNumbersForCustomerOrders);
+
     //Add API : page numbers for customer orders
     
-    app.post('/placeOrder', orders.placeOrder);
+    app.post('/placeOrder', checkAuth, orders.placeOrder);
 
     app.post('/updateOrderStatus', orders.updateStatus);
 }

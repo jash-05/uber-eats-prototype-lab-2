@@ -180,7 +180,6 @@ class CustomerRegister extends Component{
                 if(response.status === 200){
                     console.log("Successful request");
                     console.log(response.data);
-                    console.log('Cookie status: ', cookie.load('cookie'));
                 } else{
                     console.log("Unsuccessful request");
                     console.log(response);
@@ -190,7 +189,7 @@ class CustomerRegister extends Component{
     render(){
         console.log('RENDERING')
         let redirectVar = null;
-        if(cookie.load('customer')){
+        if(localStorage.getItem('customer')){
             redirectVar = <Redirect to= "/dashboard"/>
         }
         return(

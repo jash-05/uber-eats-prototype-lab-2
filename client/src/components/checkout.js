@@ -25,7 +25,7 @@ class CheckoutOrder extends Component{
         //maintain the state required for this component
         this.state = {
             restaurant_ID: props.match.params.restaurant_ID,
-            customer_ID: cookie.load('customer'),
+            customer_ID: localStorage.getItem('customer'),
             restaurant_name: "",
             selectedDishes: [],
             customer_addresses: [],
@@ -92,6 +92,7 @@ class CheckoutOrder extends Component{
     }
     fetchCustomerAddresses = async (customer_ID) => {
         try {
+            axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
             const response = await axios.get(`http://${server_IP}:3001/customerAddress/${customer_ID}`)
             console.log("Fetched customer addresses")
             console.log("Status Code: ", response.status)
@@ -143,7 +144,7 @@ class CheckoutOrder extends Component{
             if (response.status === 200){
                 console.log("Successful request");
                 console.log(response.data)
-                await this.fetchCustomerAddresses(cookie.load('customer'));
+                await this.fetchCustomerAddresses(localStorage.getItem('customer'));
                 this.setState({
                     showModal: !this.state.showModal,
                     new_address: {}
@@ -176,12 +177,14 @@ class CheckoutOrder extends Component{
                 specialInstructions: this.state.specialInstructions
             }
             console.log(data)
+            axios.defaults.headers.common['authorization'] = localStorage.getItem('token');
             const response = await axios.post(`http://${server_IP}:3001/placeOrder`, data);
             console.log("Status Code: ", response.status);
             if (response.status === 200){
                 console.log("Successful request");
                 console.log(response.data)
                 this.props.history.push('/dashboard')
+                window.location.reload(false);
             } else {
                 console.log("Unsuccessful request");
                 console.log(response);

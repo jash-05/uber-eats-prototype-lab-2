@@ -17,6 +17,9 @@ import Col from 'react-bootstrap/Col';
 import CloseButton from 'react-bootstrap/CloseButton';
 import {withRouter} from 'react-router-dom';
 import server_IP from '../config/server.config.js';
+import Modal from 'react-bootstrap/Modal';
+import { connect } from 'react-redux'
+import { update_quantity, delete_item, clear_cart, update_total_amount} from '../redux'
 
 // Define a Login Component
 class DashboardNavbar extends Component{
@@ -30,6 +33,7 @@ class DashboardNavbar extends Component{
             showSideMenu: false,
             profile_picture: "",
             first_name: "",
+            showModal: false
         }
         //Bind the handlers to this class
         this.toggleSideMenu = this.toggleSideMenu.bind(this);
@@ -40,9 +44,9 @@ class DashboardNavbar extends Component{
         this.fetchCustomerDetails();
     }
     fetchCustomerDetails = async () => {
-        if (cookie.load('customer')) {
+        if (localStorage.getItem('customer')) {
             try {
-                const response = await axios.get(`http://${server_IP}:3001/customers/${cookie.load('customer')}`);
+                const response = await axios.get(`http://${server_IP}:3001/customers/${localStorage.getItem('customer')}`);
                 console.log(response.data)
                 this.setState({
                     profile_picture: response.data.profile_picture,
@@ -62,16 +66,72 @@ class DashboardNavbar extends Component{
         e.preventDefault();
         console.log(e.target.firstChild.value);
         this.props.history.push(`/searchResults/${e.target.firstChild.value}`)
-        window.location.reload(false);
+        // window.location.reload(false);
     } 
     handleLogout = () => {
-        console.log(cookie.load('customer'))
-        console.log('Removing customer cookie')
-        cookie.remove('customer');
-        console.log(cookie.load('customer'))
-        window.location.reload(false);
+        console.log(localStorage.getItem('customer'))
+        console.log('Removing customer JWT from local storage')
+        localStorage.clear();
+        console.log(localStorage.getItem('customer'))
+        this.props.history.push('/welcomeUser')
+        // window.location.reload(false);
+    }
+    updateQuantityBeforeCheckout = async (e) => {
+        console.log('updating quantity before checkout')
+        let dish_ID = e.target.id
+        let change_in_quantity = 0
+        if (e.target.innerText === "+"){
+            change_in_quantity = 1
+        } else {
+            change_in_quantity = -1
+        }
+        const payload = {
+            restaurant_ID: this.state.restaurant_ID,
+            dish_ID: dish_ID,
+            change_in_quantity: change_in_quantity            
+        }
+        console.log(payload)
+        this.props.call_update_quantity(payload)
+        this.updateTotalAmount()
+        this.setState({})
+    }
+    updateTotalAmount = () => {
+        let total_order_amount = this.props.dishes.reduce((prev, next) => prev + next.quantity * next.price, 0);
+        total_order_amount = Math.round(total_order_amount*100)/100
+        this.props.call_update_total_amount({
+            total_amount: total_order_amount
+        })
+    }
+    viewOrder = () => {
+        console.log("Inside view order function")
+        this.updateTotalAmount();
+        this.setState({
+            showModal: !this.state.showModal
+        })
+    }
+    closeModal = () => {
+        this.setState({
+            showModal: !this.state.showModal
+        })
+    }
+    checkoutOrder = () => {
+        console.log("Inside checkout order function")
+        this.setState({
+            showModal: !this.state.showModal
+        })
     }
     render(){
+        const createOrderItemRow = row => {
+            return (
+                <Row>
+                    <Col xs={1}><Button id={row.dish_ID} onClick={this.updateQuantityBeforeCheckout} size="sm" variant="dark">-</Button></Col>
+                    <Col xs={1} className="my-1"> {row.quantity} </Col>
+                    <Col xs={1}><Button id={row.dish_ID} onClick={this.updateQuantityBeforeCheckout} size="sm" variant="dark">+</Button></Col>
+                    <Col xs={7}> {row.dish_name} </Col>
+                    <Col xs={2}> {`$${Math.round(row.quantity * row.price * 100)/100}`} </Col>
+                </Row>
+            )
+        }
         return(
             <Container fluid style={{paddingLeft: 0, paddingRight: 0}}>
                 <Navbar expand="xxl" className="bg-light rounded">
@@ -99,6 +159,11 @@ class DashboardNavbar extends Component{
                         </Nav>
                         </Col>
                         </Offcanvas.Header>
+                        {(
+                            localStorage.getItem('customer')
+                            ? <Button className="mx-5" variant="dark" size="md" onClick={this.handleLogout}>Logout</Button>
+                            : <Link className="mx-5" to="/welcomeUser"><Button variant="dark" size="md">Login</Button></Link>
+                        )}
                         <Offcanvas.Body>
                         {/* Some text as placeholder. In real life you can have the elements you
                         have chosen. Like, text, images, lists, etc. */}
@@ -128,17 +193,64 @@ class DashboardNavbar extends Component{
                             />
                             {/* <Button variant="outline-success">Search</Button> */}
                         </Form>
-                        {(
-                            cookie.load('customer')
-                            ? <Button variant="dark" size="md" onClick={this.handleLogout}>Logout</Button>
-                            : <Link to="/welcomeUser"><Button variant="dark" size="md">Login</Button></Link>
-                        )}
+                        <Button variant="dark" size="md" onClick={this.viewOrder}
+                        style={{borderRadius:"20px"}}>
+                            Cart • {this.props.dishes ? this.props.dishes.length : 0}
+                        </Button>
                     </Nav>
                     </Container>
                 </Navbar>
+                <Container className="m-5">
+                        <Modal 
+                            show={this.state.showModal} 
+                            onHide={this.closeModal}
+                            backdrop="static"
+                            keyboard={false}
+                            centered
+                        >
+                            <Modal.Header closeButton>
+                            <Modal.Title>Current Order</Modal.Title>
+                            </Modal.Header>
+                            <Modal.Body>
+                                {this.props.dishes.map(createOrderItemRow)}
+                                <Row className="mt-4">
+                                    <Col xs={1}></Col>
+                                    <Col xs={9}>Total amount:</Col>
+                                    <Col xs={2}> {`$${this.props.total_amount}`} </Col>
+                                </Row>
+                            </Modal.Body>
+                            <Modal.Footer>
+                                <Link to={`/checkout/${this.state.restaurant_ID}`}>
+                                    <Button className="mx-auto" variant="dark" onClick={this.checkoutOrder}>
+                                        Go to checkout • {`$${this.props.total_amount}`}
+                                    </Button>
+                                </Link>
+                            </Modal.Footer>
+                        </Modal>
+                    </Container>
             </Container>
         )
     }
 }
-//export Login Component
-export default withRouter(DashboardNavbar);
+
+const mapStateToProps = state => {
+    return {
+      restaurant_ID: state.cart.restaurant_ID,
+      dishes: state.cart.dishes,
+      total_amount: state.cart.total_amount
+    }
+}
+  
+const mapDispatchToProps = (dispatch) => {
+    return {
+        call_update_quantity: (x) => dispatch(update_quantity(x)),
+        call_delete_item: (x) => dispatch(delete_item(x)),
+        call_clear_cart: (x) => dispatch(clear_cart(x)),
+        call_update_total_amount: (x) => dispatch(update_total_amount(x))
+    }
+}
+
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(DashboardNavbar);

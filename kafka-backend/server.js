@@ -19,18 +19,23 @@ const authenticateRestaurant = require('./controllers/restaurant/authenticate.js
 const updateRestaurant = require('./controllers/restaurant/update.js');
 const createRestaurantAddress = require('./controllers/restaurant_address/create.js');
 const findRestaurantAddress = require('./controllers/restaurant_address/findOne.js');
+const createDish = require('./controllers/dish/create.js');
+const findAllDishes = require('./controllers/dish/findAll.js');
+const findDishById = require('./controllers/dish/findById.js');
+const updateDish = require('./controllers/dish/update.js');
 const placeOrder = require('./controllers/order/placeOrder.js');
 const updateOrderStatus = require('./controllers/order/updateStatus.js');
-// const fetchCustomerOrders = require('./controllers/order/fetchOrdersForCustomer.js');
-// const fetchRestaurantOrders = require('./controllers/order/fetchOrdersForRestaurant.js');
-// const fetchCustomerOrderPageNumbers = require('./controllers/order/fetchpageNumbersForCustomerOrders.js');
-// const fetchRestaurantOrderPageNumbers = require('./controllers/order/fetchpageNumbersForRestaurantOrders.js');
+const fetchCustomerOrders = require('./controllers/order/fetchOrdersForCustomer.js');
+const fetchRestaurantOrders = require('./controllers/order/fetchOrdersForRestaurant.js');
+const fetchCustomerOrderPageNumbers = require('./controllers/order/fetchpageNumbersForCustomerOrders.js');
+const fetchRestaurantOrderPageNumbers = require('./controllers/order/fetchpageNumbersForRestaurantOrders.js');
 
 const db = require("./models/db.js");
 db.mongoose
 .connect(db.url, {
     useNewUrlParser: true,
-    useUnifiedTopology: true
+    useUnifiedTopology: true,
+    maxPoolSize: 500
 })
 .then(() => {
     console.log("Connected to the database!");
@@ -89,9 +94,13 @@ handleTopicRequest("restaurants.authenticate", authenticateRestaurant);
 handleTopicRequest("restaurants.update", updateRestaurant);
 handleTopicRequest("restaurant_addresses.create", createRestaurantAddress);
 handleTopicRequest("restaurant_addresses.findOne", findRestaurantAddress);
+handleTopicRequest("dishes.create", createDish);
+handleTopicRequest("dishes.findAll", findAllDishes);
+handleTopicRequest("dishes.findById", findDishById);
+handleTopicRequest("dishes.update", updateDish);
 handleTopicRequest("orders.placeOrder", placeOrder);
 handleTopicRequest("orders.updateStatus", updateOrderStatus);
-// handleTopicRequest("orders.fetchOrdersForCustomer", fetchCustomerOrders);
-// handleTopicRequest("orders.fetchOrdersForRestaurant", fetchRestaurantOrders);
-// handleTopicRequest("orders.fetchpageNumbersForCustomerOrders", fetchCustomerOrderPageNumbers);
-// handleTopicRequest("orders.fetchpageNumbersForRestaurantOrders", fetchRestaurantOrderPageNumbers);
+handleTopicRequest("orders.fetchOrdersForCustomer", fetchCustomerOrders);
+handleTopicRequest("orders.fetchOrdersForRestaurant", fetchRestaurantOrders);
+handleTopicRequest("orders.fetchpageNumbersForCustomerOrders", fetchCustomerOrderPageNumbers);
+handleTopicRequest("orders.fetchpageNumbersForRestaurantOrders", fetchRestaurantOrderPageNumbers);
