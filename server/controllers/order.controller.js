@@ -68,16 +68,31 @@ exports.fetchOrdersForRestaurant = (req, res) => {
 
 exports.fetchPageNumbersForRestaurantOrders = async (req, res) => {
   console.log(req.query)
-  kafka.make_request('orders.fetchpageNumbersForRestaurantOrders', req.query, function(err, data){
-    console.log(data);
+  let condition = {
+    "restaurant_info.restaurant_ID": req.query.restaurant_ID
+  }
+  if (req.query.filter !== "all") {
+    condition['order_status'] = req.query.filter
+  }
+  Order.find(condition, (err, data) => {
     if (err) {
-      res.status(500).send({
-        message: "Some error occured while creating the customer"
-      })
+      res.status(500).send(err)
     } else {
-      res.send(data);
+      res.send({
+        'numberOfPages': Math.ceil(data.length / req.query.limit)
+      })
     }
   })
+  // kafka.make_request('orders.fetchpageNumbersForRestaurantOrders', req.query, function(err, data){
+  //   console.log(data);
+  //   if (err) {
+  //     res.status(500).send({
+  //       message: "Some error occured while creating the customer"
+  //     })
+  //   } else {
+  //     res.send(data);
+  //   }
+  // })
 };
 
 exports.fetchOrdersForCustomer = (req, res) => {

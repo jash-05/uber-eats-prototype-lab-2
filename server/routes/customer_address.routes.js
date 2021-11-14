@@ -12,8 +12,8 @@ module.exports = app => {
     // // Get city from customer ID
     // app.get("/city/:customer_ID", customer_addresses.getCity);
 
-    // // Update customer address
-    // app.put('/customerAddress', customer_addresses.update);
+    // Update customer address
+    app.put('/customerAddress', customer_addresses.update);
     
     // Delete an address for a customer
     app.delete("/customerAddress/:customer_ID/:address_type", checkAuth, customer_addresses.delete);

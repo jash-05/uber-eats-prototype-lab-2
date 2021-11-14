@@ -78,28 +78,31 @@ exports.findAll = (req, res) => {
 //   };
 
 
-// exports.update = (req, res) => {
-//     if (!req.body) {
-//         res.status(400).send({
-//             message: "Content can not be empty!"
-//         });
-//     }
-//     CustomerAddress.updateById(
-//         req.body, (err, data) => {
-//             if (err) {
-//                 if (err.kind === "not_found") {
-//                     res.status(404).send({
-//                         message: `Not found restaurant with id: ${req.body.restaurant_ID}`
-//                     });
-//                 } else {
-//                     res.status(500).send({
-//                         message: `Error updating restaurant with id: ${req.body.restaurant_ID}`
-//                     });
-//                 }
-//             } else res.send(data)
-//         }
-//     );
-// };
+exports.update = (req, res) => {
+  console.log('UPDATING CUSTOMER ADDRESS')
+    if (!req.body) {
+        res.status(400).send({
+            message: "Content can not be empty!"
+        });
+    }
+    Customer.update( {customer_ID: req.body.customer_ID, "addresses.address_type": "primary"}, {
+      $set: {
+        "addresses.$.line1": req.body.line1,
+        "addresses.$.line2": req.body.line2,
+        "addresses.$.city": req.body.city,
+        "addresses.$.state_name": req.body.state_name,
+        "addresses.$.zipcode": req.body.zipcode,
+      }
+    }, (err, data) => {
+      if (err) {
+        res.status(500).send({
+          message: err.message || "Some error occurred while retrieving the customer addresses."
+        })
+      } else {
+        res.send(data)
+      }
+    })
+};
 
 // Delete a Favourite with the specified customer_ID and restaurant_ID in the request
 
