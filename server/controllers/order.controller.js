@@ -1,126 +1,145 @@
-const kafka = require('../kafka/client');
+const kafka = require("../kafka/client");
 const db = require("../models/db");
 const Order = db.orders;
 const Customer = db.customers;
 const Restaurant = db.restaurants;
-const MOMENT= require( 'moment' );
-const {v4: uuidv4} = require('uuid');
+const MOMENT = require("moment");
+const { v4: uuidv4 } = require("uuid");
 
 const getCustomerDetails = (customer_ID) => {
-    Customer.find({customer_ID: customer_ID})
-    .then(data => {
-        return data[0]
-    })
-    .catch(err => {
-        return {}
-    });
+	Customer.find({ customer_ID: customer_ID })
+		.then((data) => {
+			return data[0];
+		})
+		.catch((err) => {
+			return {};
+		});
 };
 
 exports.placeOrder = async (req, res) => {
-    if (!req.body) {
-      res.status(400).send({ message: "Content can not be empty!" });
-      return;
-    }
-    kafka.make_request('orders.placeOrder', req.body, function(err, data){
-      console.log(data);
-      if (err) {
-        res.status(500).send({
-          message: "Some error occured while creating the customer"
-        })
-      } else {
-        res.send(data);
-      }
-    })
+	if (!req.body) {
+		res.status(400).send({ message: "Content can not be empty!" });
+		return;
+	}
+	kafka.make_request(
+		"lab3.orders.placeOrder",
+		req.body,
+		function (err, data) {
+			console.log(data);
+			if (err) {
+				res.status(500).send({
+					message: "Some error occured while creating the customer",
+				});
+			} else {
+				res.send(data);
+			}
+		}
+	);
 };
 
-
 exports.updateStatus = (req, res) => {
-    if (!req.body) {
-      return res.status(400).send({
-        message: "Data to update can not be empty!"
-      });
-    }
-    kafka.make_request('orders.updateStatus', req.body, function(err, data){
-      console.log(data);
-      if (err) {
-        res.status(500).send({
-          message: "Some error occured while creating the customer"
-        })
-      } else {
-        res.send(data);
-      }
-    })
-  };
+	if (!req.body) {
+		return res.status(400).send({
+			message: "Data to update can not be empty!",
+		});
+	}
+	kafka.make_request(
+		"lab3.orders.updateStatus",
+		req.body,
+		function (err, data) {
+			console.log(data);
+			if (err) {
+				res.status(500).send({
+					message: "Some error occured while creating the customer",
+				});
+			} else {
+				res.send(data);
+			}
+		}
+	);
+};
 
 exports.fetchOrdersForRestaurant = (req, res) => {
-    console.log(req.query)
-    kafka.make_request('orders.fetchOrdersForRestaurant', req.query, function(err, data){
-      console.log(data);
-      if (err) {
-        res.status(500).send({
-          message: "Some error occured while creating the customer"
-        })
-      } else {
-        res.send(data);
-      }
-    })
+	console.log(req.query);
+	kafka.make_request(
+		"lab3.orders.fetchOrdersForRestaurant",
+		req.query,
+		function (err, data) {
+			console.log(data);
+			if (err) {
+				res.status(500).send({
+					message: "Some error occured while creating the customer",
+				});
+			} else {
+				res.send(data);
+			}
+		}
+	);
 };
 
 exports.fetchPageNumbersForRestaurantOrders = async (req, res) => {
-  console.log(req.query)
-  let condition = {
-    "restaurant_info.restaurant_ID": req.query.restaurant_ID
-  }
-  if (req.query.filter !== "all") {
-    condition['order_status'] = req.query.filter
-  }
-  Order.find(condition, (err, data) => {
-    if (err) {
-      res.status(500).send(err)
-    } else {
-      res.send({
-        'numberOfPages': Math.ceil(data.length / req.query.limit)
-      })
-    }
-  })
-  // kafka.make_request('orders.fetchpageNumbersForRestaurantOrders', req.query, function(err, data){
-  //   console.log(data);
-  //   if (err) {
-  //     res.status(500).send({
-  //       message: "Some error occured while creating the customer"
-  //     })
-  //   } else {
-  //     res.send(data);
-  //   }
-  // })
+	console.log(req.query);
+	let condition = {
+		"restaurant_info.restaurant_ID": req.query.restaurant_ID,
+	};
+	if (req.query.filter !== "all") {
+		condition["order_status"] = req.query.filter;
+	}
+	Order.find(condition, (err, data) => {
+		if (err) {
+			res.status(500).send(err);
+		} else {
+			res.send({
+				numberOfPages: Math.ceil(data.length / req.query.limit),
+			});
+		}
+	});
+	// kafka.make_request('orders.fetchpageNumbersForRestaurantOrders', req.query, function(err, data){
+	//   console.log(data);
+	//   if (err) {
+	//     res.status(500).send({
+	//       message: "Some error occured while creating the customer"
+	//     })
+	//   } else {
+	//     res.send(data);
+	//   }
+	// })
 };
 
 exports.fetchOrdersForCustomer = (req, res) => {
-  console.log(req.query)
-  kafka.make_request('orders.fetchOrdersForCustomer', req.query, function(err, data){
-    console.log(data);
-    if (err) {
-      res.status(500).send({
-        message: "Some error occured while creating the customer"
-      })
-    } else {
-      res.send(data);
-    }
-  })
+	console.log(req.query);
+	kafka.make_request(
+		"lab3.orders.fetchOrdersForCustomer",
+		req.query,
+		function (err, data) {
+			console.log(data);
+			if (err) {
+				res.status(500).send({
+					message: "Some error occured while creating the customer",
+				});
+			} else {
+				res.send(data);
+			}
+		}
+	);
 };
 
 exports.fetchPageNumbersForCustomerOrders = async (req, res) => {
-  console.log(req.query)
-  kafka.make_request('orders.fetchpageNumbersForCustomerOrders', req.query, function(err, data){
-    console.log(data);
-    if (err) {
-      res.status(500).send({
-        message: "Some error occured while creating the customer"
-      })
-    } else {
-      res.send(data);
-    }
-  })
+	console.log(req.query);
+	kafka.make_request(
+		"lab3.orders.fetchpageNumbersForCustomerOrders",
+		req.query,
+		function (err, data) {
+			console.log(data);
+			if (err) {
+				res.status(500).send({
+					message: "Some error occured while creating the customer",
+				});
+			} else {
+				res.send(data);
+			}
+		}
+	);
 };
 
 // const e = require("express");
@@ -140,7 +159,7 @@ exports.fetchPageNumbersForCustomerOrders = async (req, res) => {
 //             } else {
 //                 res.send(data[0])
 //             }
-//         } 
+//         }
 //     })
 // }
 
@@ -169,7 +188,7 @@ exports.fetchPageNumbersForCustomerOrders = async (req, res) => {
 //               message: `Could not delete order for customer ${req.params.customer_ID}.`
 //             });
 //           }
-//         } else res.send({ 
+//         } else res.send({
 //             message: `Cart order was deleted successfully for customer ${req.params.customer_ID}!` });
 //       });
 // };
@@ -177,7 +196,7 @@ exports.fetchPageNumbersForCustomerOrders = async (req, res) => {
 // exports.addItem = (req, res) => {
 //     console.log("Adding order item with following data: ")
 //     console.log(req.body);
-    
+
 //     let order_item_dict = {
 //         order_ID: req.body.order_ID,
 //         dish_ID: req.body.dish_ID,
