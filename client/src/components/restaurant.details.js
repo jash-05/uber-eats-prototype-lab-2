@@ -247,6 +247,7 @@ class RestaurantDetails extends Component{
     }
     render(){
         console.log("Rendering");
+        console.log(this.state)
         let redirectVar = null;
         if (!localStorage.getItem('customer')){
             redirectVar = <Redirect to="/welcomeUser"/>
@@ -362,7 +363,7 @@ class RestaurantDetails extends Component{
                             </Row>
                         </Modal.Body>
                         <Modal.Footer>
-                            <Link to={`/checkout/${this.state.restaurant_ID}`}>
+                            <Link to={`/checkout/${this.props.restaurant_ID}`}>
                                 <Button className="mx-auto" variant="dark" onClick={this.checkoutOrder}>
                                     Go to checkout • {`$${this.props.total_amount}`}
                                 </Button>

@@ -29,11 +29,13 @@ class DashboardNavbar extends Component{
         super(props);
         //maintain the state required for this component
         this.state = {
+            restaurant_ID: this.props.restaurant_ID,
             authFlag : false,
             showSideMenu: false,
             profile_picture: "",
             first_name: "",
-            showModal: false
+            showModal: false,
+            changeRoute: ""
         }
         //Bind the handlers to this class
         this.toggleSideMenu = this.toggleSideMenu.bind(this);
@@ -64,8 +66,11 @@ class DashboardNavbar extends Component{
     }
     searchHandler = async (e) => {
         e.preventDefault();
+        console.log(e)
         console.log(e.target.firstChild.value);
-        this.props.history.push(`/searchResults/${e.target.firstChild.value}`)
+        this.setState({
+            changeRoute: `/searchResults/${e.target.firstChild.value}`
+        })
         // window.location.reload(false);
     } 
     handleLogout = () => {
@@ -73,7 +78,10 @@ class DashboardNavbar extends Component{
         console.log('Removing customer JWT from local storage')
         localStorage.clear();
         console.log(localStorage.getItem('customer'))
-        this.props.history.push('/welcomeUser')
+        this.setState({
+            changeRoute: '/welcomeUser'
+        })
+        // this.props.history.push('/welcomeUser')
         // window.location.reload(false);
     }
     updateQuantityBeforeCheckout = async (e) => {
@@ -86,7 +94,7 @@ class DashboardNavbar extends Component{
             change_in_quantity = -1
         }
         const payload = {
-            restaurant_ID: this.state.restaurant_ID,
+            restaurant_ID: this.props.restaurant_ID,
             dish_ID: dish_ID,
             change_in_quantity: change_in_quantity            
         }
@@ -121,6 +129,10 @@ class DashboardNavbar extends Component{
         })
     }
     render(){
+        let redirectVar = ""
+        if (this.state.changeRoute) {
+            redirectVar = <Redirect to={this.state.changeRoute}/>
+        }
         const createOrderItemRow = row => {
             return (
                 <Row>
@@ -134,6 +146,7 @@ class DashboardNavbar extends Component{
         }
         return(
             <Container fluid style={{paddingLeft: 0, paddingRight: 0}}>
+                {redirectVar}
                 <Navbar expand="xxl" className="bg-light rounded">
                     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous"/>
                     <Container fluid className="px-5 py-3">
@@ -220,7 +233,7 @@ class DashboardNavbar extends Component{
                                 </Row>
                             </Modal.Body>
                             <Modal.Footer>
-                                <Link to={`/checkout/${this.state.restaurant_ID}`}>
+                                <Link to={`/checkout/${this.props.restaurant_ID}`}>
                                     <Button className="mx-auto" variant="dark" onClick={this.checkoutOrder}>
                                         Go to checkout • {`$${this.props.total_amount}`}
                                     </Button>
